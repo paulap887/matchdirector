@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-MatchDirector.Simulator-0fc13090-efad-4d8a-8451-caf7cae8294b</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MatchDirector.Contracts\MatchDirector.Contracts.csproj" />
+    <ProjectReference Include="..\MatchDirector.ServiceDefaults\MatchDirector.ServiceDefaults.csproj" />
+  </ItemGroup>
+</Project>
