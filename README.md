@@ -51,6 +51,22 @@ dotnet run --project src/MatchDirector.AppHost
 
 The Aspire dashboard opens with every service, its logs and its traces.
 
+### Azure resources
+
+Event Hubs runs in a local emulator (Docker). Microsoft Foundry is provisioned in Azure on first run: a Foundry resource with a project, `gpt-5-mini` ("reasoning") and `gpt-4o-mini` ("fast") deployments, Application Insights, and a monthly budget alert ([infra/budget.bicep](infra/budget.bicep)). Local auth is disabled, so services use managed identity or your Azure CLI login, and no keys exist.
+
+Tell Aspire where to provision (user-secrets, never committed):
+
+```bash
+cd src/MatchDirector.AppHost
+dotnet user-secrets set Azure:SubscriptionId <subscription-id>
+dotnet user-secrets set Azure:TenantId <tenant-id>
+dotnet user-secrets set Azure:Location swedencentral
+dotnet user-secrets set Azure:ResourceGroup rg-matchdirector-dev
+dotnet user-secrets set Azure:CredentialSource AzureCli
+dotnet user-secrets set Parameters:budgetEmail <you@example.com>
+```
+
 ### Synthetic matches
 
 The simulator plays *Kestrel Bay FC v Redmoor Rovers* (both fictional) as a seeded, deterministic possession model: the same seed always replays the same match. It is calibrated against typical top-flight averages per match: about 2.8 goals, 27 shots, 900 passes and 79% pass accuracy, with a median shot distance of 15 m.
