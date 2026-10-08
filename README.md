@@ -51,6 +51,16 @@ dotnet run --project src/MatchDirector.AppHost
 
 The Aspire dashboard opens with every service, its logs and its traces.
 
+### Synthetic matches
+
+The simulator plays *Kestrel Bay FC v Redmoor Rovers* (both fictional) as a seeded, deterministic possession model: the same seed always replays the same match. It is calibrated against typical top-flight averages per match: about 2.8 goals, 27 shots, 900 passes and 79% pass accuracy, with a median shot distance of 15 m.
+
+Set `Simulator__Seed` to replay a match and `Simulator__Speed` (1–20) to set the replay speed. To export a full match as a JSON-lines dataset:
+
+```bash
+dotnet run --project src/MatchDirector.Simulator -- export 42 match-42.jsonl
+```
+
 ## License
 
 [MIT](LICENSE)
