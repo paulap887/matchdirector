@@ -53,7 +53,7 @@ The Aspire dashboard opens with every service, its logs and its traces.
 
 ### Azure resources
 
-Event Hubs runs in a local emulator (Docker). Microsoft Foundry is provisioned in Azure on first run: a Foundry resource with a project, `gpt-5-mini` ("reasoning") and `gpt-4o-mini` ("fast") deployments, Application Insights, and a monthly budget alert ([infra/budget.bicep](infra/budget.bicep)). Local auth is disabled, so services use managed identity or your Azure CLI login, and no keys exist.
+Event Hubs runs in a local emulator (Docker). Microsoft Foundry is provisioned in Azure on first run: a Foundry resource with a project, `gpt-5-mini` ("reasoning") and `gpt-4.1-mini` ("fast") deployments, Application Insights, and a monthly budget alert ([infra/budget.bicep](infra/budget.bicep)). Local auth is disabled, so services use managed identity or your Azure CLI login, and no keys exist.
 
 Tell Aspire where to provision (user-secrets, never committed):
 

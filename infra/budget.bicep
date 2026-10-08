@@ -1,6 +1,9 @@
 // Monthly cost budget for the MatchDirector resource group, with email alerts.
 targetScope = 'resourceGroup'
 
+#disable-next-line no-unused-params // Aspire passes a location to every template.
+param location string = resourceGroup().location
+
 @description('Monthly budget in the billing currency.')
 param amount int = 30
 

@@ -9,17 +9,13 @@ var matchEvents = eventHubs.AddHub("match-events");
 var agentsGroup = matchEvents.AddConsumerGroup("agents-group", "agents");
 
 // Microsoft Foundry: a project for the agent team and two models.
-// "reasoning" (gpt-5-mini) analyses and verifies; "fast" (gpt-4o-mini) narrates and localises on the live path.
+// "reasoning" (gpt-5-mini) analyses and verifies; "fast" (gpt-4.1-mini, no reasoning step) narrates and localises on the live path.
 var foundry = builder.AddFoundry("foundry");
 var foundryProject = foundry.AddProject("matchdirector");
 var reasoningModel = foundry.AddDeployment("reasoning", FoundryModel.OpenAI.Gpt5Mini)
     .WithProperties(d => d.SkuCapacity = 50);
-var fastModel = foundry.AddDeployment("fast", FoundryModel.OpenAI.Gpt4oMini)
-    .WithProperties(d =>
-    {
-        d.SkuName = "Standard";
-        d.SkuCapacity = 50;
-    });
+var fastModel = foundry.AddDeployment("fast", "gpt-4.1-mini", "2025-04-14", "OpenAI")
+    .WithProperties(d => d.SkuCapacity = 50);
 
 // Cost guardrail: monthly budget on the resource group with email alerts.
 builder.AddBicepTemplate("budget", "../../infra/budget.bicep")
