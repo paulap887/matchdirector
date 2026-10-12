@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\MatchDirector.StatsEngine\MatchDirector.StatsEngine.csproj" />
+    <ProjectReference Include="..\..\src\MatchDirector.Simulator\MatchDirector.Simulator.csproj" />
   </ItemGroup>
 
 </Project>
