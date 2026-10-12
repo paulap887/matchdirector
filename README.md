@@ -10,6 +10,8 @@ MatchDirector turns synthetic football events into real-time insights, broadcast
 
 > 🚧 Built during the *Inside the Game* developer hackathon (6–27 October 2026). Work in progress.
 
+**Live demo:** https://overlayhub.whitemeadow-6a3a991d.swedencentral.azurecontainerapps.io (a simulated match plays continuously at 10× speed)
+
 ## Pipeline
 
 | Stage | What happens | Where |
@@ -66,6 +68,16 @@ dotnet user-secrets set Azure:ResourceGroup rg-matchdirector-dev
 dotnet user-secrets set Azure:CredentialSource AzureCli
 dotnet user-secrets set Parameters:budgetEmail <you@example.com>
 ```
+
+### Deploy to Azure
+
+Deploys to Azure Container Apps with real Event Hubs, the Foundry models and managed identity throughout (no keys or connection secrets). The overlay hub serves the built React app.
+
+```bash
+aspire deploy --apphost src/MatchDirector.AppHost/MatchDirector.AppHost.csproj
+```
+
+User-secrets are not loaded when deploying, so supply the same settings as `Azure__SubscriptionId`, `Azure__TenantId`, `Azure__Location`, `Azure__ResourceGroup` and `Parameters__budgetEmail` environment variables. Simulator, agents and overlay hub each run as one 0.25 vCPU replica; expect roughly USD 1–2 per day while deployed.
 
 ### Synthetic matches
 

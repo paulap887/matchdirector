@@ -14,6 +14,7 @@ builder.Services.AddSingleton<BroadcastState>();
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
+app.UseStaticFiles(); // the React app, copied into wwwroot when published
 app.MapHub<MatchHub>("/hubs/match");
 
 // Current state for viewers who join mid-match.
