@@ -11,6 +11,9 @@ public sealed record Club(string Id, string Name, string Venue, IReadOnlyList<Pl
 {
     public Player Goalkeeper => Players.First(p => p.Role == Role.Goalkeeper);
     public Player Striker => Players.Single(p => p.Number == 9);
+
+    public TeamInfo ToTeamInfo() =>
+        new(Id, Name, Players.Select(p => new PlayerInfo(p.Id, p.Name, p.Number, p.Role.ToString())).ToList());
 }
 
 /// <summary>Fictional clubs. Any resemblance to real clubs or players is unintended.</summary>

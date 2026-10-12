@@ -2,7 +2,10 @@ using MatchDirector.Contracts;
 
 namespace MatchDirector.Simulator.Engine;
 
-public sealed record SimulatedMatch(string MatchId, int Seed, Club Home, Club Away, IReadOnlyList<MatchEvent> Events);
+public sealed record SimulatedMatch(string MatchId, int Seed, Club Home, Club Away, IReadOnlyList<MatchEvent> Events)
+{
+    public MatchInfo Info => new(MatchId, Home.Venue, Home.ToTeamInfo(), Away.ToTeamInfo());
+}
 
 /// <summary>
 /// Deterministic possession-based match simulator. The same seed always produces the same match.

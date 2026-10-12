@@ -19,6 +19,7 @@ public sealed class Worker(IOptions<SimulatorOptions> options, IMatchEventSink s
             logger.LogInformation("Kick-off {MatchId}: {Home} v {Away} at {Venue}, {Count} events, {Speed}x",
                 match.MatchId, match.Home.Name, match.Away.Name, match.Home.Venue, match.Events.Count, speed);
 
+            await sink.PublishAsync(match.Info, stoppingToken);
             await PlayAsync(match, speed, stoppingToken);
 
             var goals = match.Events.Where(e => e.Type == Contracts.MatchEventType.Goal).ToList();
