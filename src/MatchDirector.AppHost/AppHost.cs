@@ -22,7 +22,11 @@ builder.AddBicepTemplate("budget", "../../infra/budget.bicep")
     .WithParameter("contactEmail", builder.AddParameter("budgetEmail"))
     .WithParameter("amount", 30);
 
+// Shared secret so only the agent service can push overlays into the public hub.
+var ingestKey = builder.AddParameter("overlayIngestKey", new GenerateParameterDefault { MinLength = 32, Special = false }, secret: true);
+
 var overlayHub = builder.AddProject<Projects.MatchDirector_OverlayHub>("overlayhub")
+    .WithEnvironment("Overlay__IngestKey", ingestKey)
     .WithExternalHttpEndpoints();
 
 builder.AddProject<Projects.MatchDirector_Simulator>("simulator")
@@ -35,6 +39,7 @@ builder.AddProject<Projects.MatchDirector_Agents>("agents")
     .WithReference(reasoningModel)
     .WithReference(fastModel)
     .WithReference(overlayHub)
+    .WithEnvironment("Overlay__IngestKey", ingestKey)
     .WaitFor(matchEvents);
 
 builder.AddViteApp("web", "../web")
