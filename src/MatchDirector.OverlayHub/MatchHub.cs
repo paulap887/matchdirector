@@ -17,15 +17,22 @@ public sealed class BroadcastState
 
     public JsonElement? Snapshot { get; set; }
 
+    /// <summary>Records the match on air. Only a different match clears the screen; repeats of the same one just refresh it.</summary>
     public void Start(JsonElement matchInfo)
     {
         lock (_lock)
         {
+            if (MatchId(_matchInfo) != MatchId(matchInfo))
+            {
+                Snapshot = null;
+                _overlays.Clear();
+            }
             _matchInfo = matchInfo;
-            Snapshot = null;
-            _overlays.Clear();
         }
     }
+
+    private static string? MatchId(JsonElement? info) =>
+        info is { ValueKind: JsonValueKind.Object } i && i.TryGetProperty("matchId", out var id) ? id.GetString() : null;
 
     public void Add(JsonElement overlay)
     {

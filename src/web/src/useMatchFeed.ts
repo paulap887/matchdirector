@@ -16,7 +16,10 @@ export function useMatchFeed(): Feed {
       .configureLogging(LogLevel.Warning)
       .build()
 
-    connection.on('matchInfo', (info: MatchInfo) => setFeed((f) => ({ ...f, info, snapshot: undefined, overlays: [] })))
+    // Match info is re-sent periodically; only a different match resets the screen.
+    connection.on('matchInfo', (info: MatchInfo) =>
+      setFeed((f) => (f.info?.matchId === info.matchId ? { ...f, info } : { ...f, info, snapshot: undefined, overlays: [] })),
+    )
     connection.on('snapshot', (snapshot: MatchSnapshot) => setFeed((f) => ({ ...f, snapshot })))
     connection.on('overlay', (overlay: Overlay) => setFeed((f) => ({ ...f, overlays: [overlay, ...f.overlays].slice(0, 30) })))
     connection.onreconnected(() => setFeed((f) => ({ ...f, connected: true })))

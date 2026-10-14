@@ -52,7 +52,7 @@ public sealed class Director(INarrator narrator, OverlayPublisher publisher, ILo
             var moments = session.Analyzer.Ingest(e);
             if (!live)
                 return;
-            if (!session.Announced)
+            if (Stopwatch.GetElapsedTime(session.LastAnnounced) > TimeSpan.FromSeconds(30))
                 await AnnounceAsync(session, ct);
 
             var snapshot = session.Analyzer.Snapshot();
@@ -71,10 +71,13 @@ public sealed class Director(INarrator narrator, OverlayPublisher publisher, ILo
         }
     }
 
-    /// <summary>Tells the hub which match is on, including after a restart where the hub may have lost it.</summary>
+    /// <summary>
+    /// Tells the hub which match is on. Repeated every 30 seconds while live, so a hub that restarted
+    /// (and lost its in-memory state) recovers on its own.
+    /// </summary>
     private async Task AnnounceAsync(Session session, CancellationToken ct)
     {
-        session.Announced = true;
+        session.LastAnnounced = Stopwatch.GetTimestamp();
         await publisher.PublishAsync(session.Info, ct);
         await publisher.PublishAsync(session.Analyzer.Snapshot(), ct);
     }
@@ -83,7 +86,7 @@ public sealed class Director(INarrator narrator, OverlayPublisher publisher, ILo
     {
         public MatchInfo Info { get; } = info;
         public MatchAnalyzer Analyzer { get; } = new(info.MatchId, info.Home.TeamId, info.Away.TeamId);
-        public bool Announced { get; set; }
+        public long LastAnnounced { get; set; }
         public long LastSnapshot { get; set; }
     }
 
