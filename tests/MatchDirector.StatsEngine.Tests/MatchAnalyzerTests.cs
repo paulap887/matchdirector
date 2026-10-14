@@ -26,6 +26,7 @@ public class MatchAnalyzerTests
         Assert.Equal("HOME-10", goal.PlayerId);
         Assert.Equal(["m-1", "m-2", "m-3", "m-4", "m-5"], goal.Evidence);
         Assert.Equal(2, goal.Metrics["passesInMove"]);
+        Assert.Equal(["HOME-10", "HOME-09", "HOME-08"], goal.Participants);
         Assert.Equal(1, goal.Metrics["homeScore"]);
         Assert.Equal(0, goal.Metrics["awayScore"]);
 
@@ -78,6 +79,7 @@ public class MatchAnalyzerTests
     {
         var (match, moments) = Analyse(seed);
         var sequenceById = match.Events.ToDictionary(e => e.EventId, e => e.Sequence);
+        var players = match.Home.Players.Concat(match.Away.Players).Select(p => p.Id).ToHashSet();
 
         Assert.All(moments, m =>
         {
@@ -85,6 +87,9 @@ public class MatchAnalyzerTests
             Assert.All(m.Evidence, id => Assert.True(sequenceById.ContainsKey(id), $"{m.MomentId} cites unknown event {id}"));
             Assert.All(m.Evidence, id => Assert.True(sequenceById[id] <= m.TriggeredBy, $"{m.MomentId} cites future event {id}"));
             Assert.All(m.Metrics.Values, v => Assert.True(double.IsFinite(v)));
+            Assert.All(m.Moment.Participants, p => Assert.Contains(p, players));
+            if (m.Moment.PlayerId is { } main)
+                Assert.Equal(main, m.Moment.Participants[0]);
         });
     }
 

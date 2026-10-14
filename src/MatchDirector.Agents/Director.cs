@@ -93,6 +93,9 @@ public sealed class Director(INarrator narrator, OverlayPublisher publisher, ILo
         {
             ["casual"] = narration.Casual,
             ["analyst"] = narration.Analyst,
+            ["homeFan"] = narration.HomeFan,
+            ["awayFan"] = narration.AwayFan,
             ["source"] = narration.Source
-        });
+        },
+        moment.Participants);
 }

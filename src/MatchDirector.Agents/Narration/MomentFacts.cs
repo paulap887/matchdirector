@@ -1,3 +1,4 @@
+using System.Globalization;
 using MatchDirector.Contracts;
 using MatchDirector.StatsEngine;
 
@@ -26,18 +27,24 @@ public sealed record MomentFacts(
             snapshot.Home.Goals, snapshot.Away.Goals, info.Home.Name, info.Away.Name);
     }
 
-    /// <summary>Every number the narration is allowed to contain.</summary>
+    private static readonly string[] Formats = ["0", "0.#", "0.##"];
+
+    /// <summary>Every number the narration is allowed to contain, in any rounding a writer might reasonably use.</summary>
     public IReadOnlySet<double> AllowedNumbers()
     {
         var numbers = new HashSet<double> { Minute, HomeGoals, AwayGoals };
         foreach (var value in Moment.Metrics.Values)
         {
             numbers.Add(value);
-            numbers.Add(Math.Round(value));
-            numbers.Add(Math.Round(value, 1));
-            numbers.Add(Math.Round(value, 2));
-            if (value is > 0 and <= 1)
-                numbers.Add(Math.Round(value * 100)); // 0.34 xG may be said as 34%
+            numbers.Add(Math.Abs(value)); // "-42" is read as "42" by the number matcher
+            foreach (var shown in new[] { value, Math.Abs(value), value * 100 }) // 0.34 xG may be said as 34%
+            {
+                foreach (var format in Formats)
+                    numbers.Add(double.Parse(shown.ToString(format, CultureInfo.InvariantCulture), CultureInfo.InvariantCulture));
+                numbers.Add(Math.Round(shown));
+                numbers.Add(Math.Round(shown, 1));
+                numbers.Add(Math.Round(shown, 2));
+            }
         }
         return numbers;
     }

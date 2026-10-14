@@ -13,13 +13,16 @@ public sealed class AgentNarrator(AIAgent agent, ILogger<AgentNarrator> logger) 
 {
     public const string Instructions = """
         You are the live narrator for a football broadcast overlay. You receive one moment as JSON facts.
-        Write two lines about it:
+        Write four lines about it, one per audience:
         - "casual": for a casual fan. Warm, plain words, at most 14 words, no jargon, at most one number.
         - "analyst": for an analyst. Precise, at most 22 words, uses the metrics.
+        - "homeFan": a passionate supporter of the home team (score.home), saying "we"/"us" for that team.
+          Celebrate their good moments, groan at the opponent's. At most 14 words, at most one number.
+        - "awayFan": the same for a supporter of the away team (score.away).
         Rules: use ONLY the facts given. Never invent players, events or numbers. Every number you write must
         appear in the facts exactly (you may write a 0-1 metric as a percentage). Always use the unit given in "units"
         for a metric and never convert it. Use player and team names as given.
-        Reply with JSON only: {"casual": "...", "analyst": "..."}
+        Reply with JSON only: {"casual": "...", "analyst": "...", "homeFan": "...", "awayFan": "..."}
         """;
 
     public async Task<Narrated> NarrateAsync(MomentFacts facts, CancellationToken cancellationToken)
@@ -44,8 +47,8 @@ public sealed class AgentNarrator(AIAgent agent, ILogger<AgentNarrator> logger) 
             if (text.StartsWith("json", StringComparison.OrdinalIgnoreCase))
                 text = text[4..];
             var lines = JsonSerializer.Deserialize<Lines>(text, MatchDirectorJson.Options);
-            if (lines is { Casual.Length: > 0, Analyst.Length: > 0 })
-                return new Narrated(lines.Casual, lines.Analyst, "agent");
+            if (lines is { Casual.Length: > 0, Analyst.Length: > 0, HomeFan.Length: > 0, AwayFan.Length: > 0 })
+                return new Narrated(lines.Casual, lines.Analyst, lines.HomeFan, lines.AwayFan, "agent");
             logger.LogWarning("Narrator returned unusable output for {MomentId}", facts.Moment.MomentId);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -87,5 +90,5 @@ public sealed class AgentNarrator(AIAgent agent, ILogger<AgentNarrator> logger) 
         _ => facts.Moment.Type.ToString()
     };
 
-    private sealed record Lines(string Casual, string Analyst);
+    private sealed record Lines(string Casual, string Analyst, string HomeFan, string AwayFan);
 }

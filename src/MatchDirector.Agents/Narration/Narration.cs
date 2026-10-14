@@ -4,8 +4,11 @@ using MatchDirector.StatsEngine;
 
 namespace MatchDirector.Agents.Narration;
 
-/// <summary>The same moment told two ways: for a casual fan and for an analyst.</summary>
-public sealed record Narrated(string Casual, string Analyst, string Source);
+/// <summary>The same moment told for four audiences: a casual fan, an analyst, and a supporter of each club.</summary>
+public sealed record Narrated(string Casual, string Analyst, string HomeFan, string AwayFan, string Source)
+{
+    public IEnumerable<string> Lines => [Casual, Analyst, HomeFan, AwayFan];
+}
 
 public interface INarrator
 {
@@ -21,7 +24,7 @@ public static partial class NarrationVerifier
     public static IReadOnlyList<string> UnsupportedNumbers(Narrated narration, MomentFacts facts)
     {
         var allowed = facts.AllowedNumbers();
-        return Numbers().Matches($"{narration.Casual} {narration.Analyst}")
+        return Numbers().Matches(string.Join(" ", narration.Lines))
             .Select(m => m.Value)
             .Where(n => !allowed.Contains(double.Parse(n, CultureInfo.InvariantCulture)))
             .Distinct()
@@ -69,6 +72,30 @@ public sealed class TemplateNarrator : INarrator
                 $"xG {Metric("homeXg")} v {Metric("awayXg")}, shots {Metric("homeShots")} v {Metric("awayShots")}."),
             _ => ($"{f.Team}: {f.Moment.Type}.", $"{f.Moment.Type} at minute {f.Minute}.")
         };
-        return new Narrated(casual, analyst, "template");
+        return new Narrated(casual, analyst, Fan(f, home: true), Fan(f, home: false), "template");
+    }
+
+    /// <summary>A partisan line from the point of view of one club's supporters.</summary>
+    private static string Fan(MomentFacts f, bool home)
+    {
+        var ours = f.Team == (home ? f.HomeTeam : f.AwayTeam);
+        var who = f.Player ?? f.Team;
+        var (us, them) = home ? (f.HomeGoals, f.AwayGoals) : (f.AwayGoals, f.HomeGoals);
+        var result = us > them ? "We're winning" : us < them ? "We're behind" : "All square";
+
+        return f.Moment.Type switch
+        {
+            MomentType.Goal => ours ? $"YES! {who} scores! {us}-{them}!" : $"Gutted. {who} scores for {f.Team}. {us}-{them}.",
+            MomentType.BigChanceMissed => ours ? $"Agony! {who} should have scored there." : $"Phew! {f.Team} waste a big chance.",
+            MomentType.KeySave => ours ? $"Get in! {who} keeps them out!" : $"Denied by {who}. So close!",
+            MomentType.PassingMove => ours ? "Lovely stuff, we're keeping the ball!" : $"{f.Team} are passing us around.",
+            MomentType.DifficultPass => ours ? $"What a ball from {who}!" : $"Dangerous pass from {who}, watch out.",
+            MomentType.HighRegain => ours ? "Great pressing, we win it back high up!" : $"Sloppy, {f.Team} nick it off us.",
+            MomentType.MomentumShift => ours ? "We're on top now, come on!" : $"{f.Team} are taking over. Hold on!",
+            MomentType.TempoShift => f.Moment.Metrics.GetValueOrDefault("chaos") >= 50 ? "End to end now, nerves everywhere!" : "Calmer now. Keep the ball!",
+            MomentType.HalfTime => $"Half-time. {result}, {us}-{them}.",
+            MomentType.FullTime => us > them ? $"Full-time: we win {us}-{them}!" : us < them ? $"Full-time: beaten {us}-{them}." : $"Full-time: a {us}-{them} draw.",
+            _ => $"{f.Moment.Type} for {f.Team}."
+        };
     }
 }

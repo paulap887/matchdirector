@@ -19,6 +19,8 @@ public sealed class MatchAnalyzer
     private readonly TempoMeter _tempo = new();
     private readonly List<MatchEvent> _sequence = [];
     private readonly List<string> _goalEvents = [];
+    private readonly Dictionary<string, MatchEvent> _recent = [];
+    private readonly Queue<string> _recentOrder = new();
 
     private int _period;
     private TimeSpan _clock;
@@ -43,6 +45,7 @@ public sealed class MatchAnalyzer
     public IReadOnlyList<Moment> Ingest(MatchEvent e)
     {
         var moments = new List<Moment>();
+        Remember(e);
         ResolvePendingShot(e, moments);
         AdvanceClock(e);
 
@@ -333,8 +336,27 @@ public sealed class MatchAnalyzer
 
     private double Possession(string teamId) => TeamSnapshot(teamId).Possession;
 
-    private Moment Create(MomentType type, MatchEvent at, int priority, Dictionary<string, double> metrics, IEnumerable<string> evidence) =>
-        new($"{at.EventId}:{type}", type, at.MatchClock, at.Period, at.TeamId, at.PlayerId, priority, metrics, evidence.Distinct().ToList());
+    private Moment Create(MomentType type, MatchEvent at, int priority, Dictionary<string, double> metrics, IEnumerable<string> evidence)
+    {
+        var cited = evidence.Distinct().ToList();
+        var participants = cited
+            .Select(id => _recent.GetValueOrDefault(id))
+            .SelectMany(e => e is null ? [] : new[] { e.PlayerId, e.Type == MatchEventType.Pass ? e.TargetPlayerId : null })
+            .Prepend(at.PlayerId)
+            .OfType<string>()
+            .Distinct()
+            .ToList();
+        return new($"{at.EventId}:{type}", type, at.MatchClock, at.Period, at.TeamId, at.PlayerId, priority, metrics, cited, participants);
+    }
+
+    /// <summary>Keeps recent events (beyond the ten-minute momentum horizon) so moments can name the players they cite.</summary>
+    private void Remember(MatchEvent e)
+    {
+        _recent[e.EventId] = e;
+        _recentOrder.Enqueue(e.EventId);
+        if (_recentOrder.Count > 600)
+            _recent.Remove(_recentOrder.Dequeue());
+    }
 
     private PitchPoint Frame(string teamId, PitchPoint p) => Pitch.ToAttackingFrame(p, teamId == _homeId, Math.Max(_period, 1));
     private TeamTally Team(string teamId) => _teams[teamId];
