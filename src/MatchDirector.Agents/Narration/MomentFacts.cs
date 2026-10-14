@@ -29,11 +29,14 @@ public sealed record MomentFacts(
 
     private static readonly string[] Formats = ["0", "0.#", "0.##"];
 
-    /// <summary>Every number the narration is allowed to contain, in any rounding a writer might reasonably use.</summary>
-    public IReadOnlySet<double> AllowedNumbers()
+    /// <summary>
+    /// Every number a line about this moment may contain, in any rounding a writer might reasonably use.
+    /// <paramref name="extra"/> adds numbers returned by code tools (for the analyst's insight).
+    /// </summary>
+    public IReadOnlySet<double> AllowedNumbers(IEnumerable<double>? extra = null)
     {
         var numbers = new HashSet<double> { Minute, HomeGoals, AwayGoals };
-        foreach (var value in Moment.Metrics.Values)
+        foreach (var value in Moment.Metrics.Values.Concat(extra ?? []))
         {
             numbers.Add(value);
             numbers.Add(Math.Abs(value)); // "-42" is read as "42" by the number matcher

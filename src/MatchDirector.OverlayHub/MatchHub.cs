@@ -31,13 +31,24 @@ public sealed class BroadcastState
         }
     }
 
+    private static string? Id(JsonElement overlay) =>
+        overlay.TryGetProperty("overlayId", out var id) ? id.GetString() : null;
+
     private static string? MatchId(JsonElement? info) =>
         info is { ValueKind: JsonValueKind.Object } i && i.TryGetProperty("matchId", out var id) ? id.GetString() : null;
 
-    public void Add(JsonElement overlay)
+    /// <summary>Adds an overlay, or replaces it in place when the review agents republish it with the same ID.</summary>
+    public void Upsert(JsonElement overlay)
     {
         lock (_lock)
         {
+            var id = Id(overlay);
+            var existing = _overlays.FindIndex(o => Id(o) == id);
+            if (existing >= 0)
+            {
+                _overlays[existing] = overlay;
+                return;
+            }
             _overlays.Add(overlay);
             if (_overlays.Count > RecentOverlays)
                 _overlays.RemoveAt(0);

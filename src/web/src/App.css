@@ -134,3 +134,20 @@ footer { font-size: 12px; color: var(--muted); text-align: center; }
 .top-players tr.away td:first-child { border-left: 3px solid var(--away); padding-left: 6px; }
 
 .empty { color: var(--muted); font-size: 14px; }
+
+/* Agent review and trace */
+.review { font-size: 11px; border-radius: 999px; padding: 2px 8px; border: 1px solid var(--line); }
+.review.pending { color: var(--muted); }
+.review.approved { color: #7ee2a8; border-color: color-mix(in srgb, #7ee2a8 40%, var(--line)); }
+.review.corrected { color: var(--away); border-color: color-mix(in srgb, var(--away) 40%, var(--line)); }
+.feed li .review { justify-self: start; grid-column: 1 / -1; }
+.insight { margin: 4px 0 12px; padding: 10px 12px; border-left: 3px solid #7ab8ff; background: color-mix(in srgb, #7ab8ff 8%, transparent); border-radius: 0 8px 8px 0; font-size: 15px; line-height: 1.45; grid-column: 1 / -1; }
+.feed .insight { font-size: 13px; margin: 2px 0; }
+.insight b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #7ab8ff; margin-bottom: 2px; }
+.trace { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 6px; counter-reset: step; }
+.trace li { display: grid; grid-template-columns: minmax(130px, 180px) 1fr; gap: 10px; padding: 6px 10px; border-radius: 8px; background: var(--bg); border-left: 3px solid #7ab8ff; }
+.trace li.code { border-left-color: var(--accent); }
+.trace .who { font-weight: 600; display: flex; flex-direction: column; }
+.trace small { color: var(--muted); font-weight: 400; }
+.trace em { display: block; color: var(--away); font-style: normal; font-size: 12px; margin-top: 2px; }
+@media (max-width: 600px) { .trace li { grid-template-columns: 1fr; gap: 2px; } }

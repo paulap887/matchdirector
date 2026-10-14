@@ -59,6 +59,19 @@ export type Overlay = {
   evidence: string[]
   variants: Record<string, string>
   participants?: string[]
+  trace?: AgentStep[]
+}
+
+/** One step in producing an overlay: an agent or a code check. */
+export type AgentStep = { agent: string; model: string; outcome: string; durationMs: number; detail?: string }
+
+export type Review = 'approved' | 'corrected' | 'pending' | 'none'
+
+/** Where an overlay is in the review lane, from its agent trace. */
+export function reviewOf(overlay: Overlay): Review {
+  const critic = overlay.trace?.find((s) => s.agent === 'Verifier critic')
+  if (critic) return critic.outcome === 'approved' ? 'approved' : 'corrected'
+  return overlay.priority >= 45 && overlay.variants.source === 'agent' ? 'pending' : 'none'
 }
 
 export type Mode = 'casual' | 'analyst' | 'club' | 'player'

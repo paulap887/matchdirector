@@ -1,4 +1,5 @@
 using System.Text.Json;
+using MatchDirector.Agents.Studio;
 using MatchDirector.Contracts;
 using MatchDirector.StatsEngine;
 using Microsoft.Agents.AI;
@@ -16,37 +17,48 @@ public sealed class AgentNarrator(AIAgent agent, ILogger<AgentNarrator> logger) 
         Write four lines about it, one per audience:
         - "casual": for a casual fan. Warm, plain words, at most 14 words, no jargon, at most one number.
         - "analyst": for an analyst. Precise, at most 22 words, uses the metrics.
-        - "homeFan": a passionate supporter of the home team (score.home), saying "we"/"us" for that team.
-          Celebrate their good moments, groan at the opponent's. At most 14 words, at most one number.
-        - "awayFan": the same for a supporter of the away team (score.away).
+        - "homeFan": a passionate supporter of the club named in fans.homeFan, saying "we"/"us" for that club.
+          Celebrate their good moments, groan at the other club's. At most 14 words, at most one number.
+        - "awayFan": the same for a supporter of the club named in fans.awayFan.
+        "team" is the club the moment belongs to: check whether that is the fan's own club before writing a fan line.
         Rules: use ONLY the facts given. Never invent players, events or numbers. Every number you write must
         appear in the facts exactly (you may write a 0-1 metric as a percentage). Always use the unit given in "units"
         for a metric and never convert it. Use player and team names as given.
         Reply with JSON only: {"casual": "...", "analyst": "...", "homeFan": "...", "awayFan": "..."}
         """;
 
-    public async Task<Narrated> NarrateAsync(MomentFacts facts, CancellationToken cancellationToken)
-    {
-        var prompt = JsonSerializer.Serialize(new
-        {
-            moment = facts.Moment.Type.ToString(),
-            meaning = Meaning(facts),
-            minute = facts.Minute,
-            team = facts.Team,
-            opponent = facts.Opponent,
-            player = facts.Player,
-            score = new { home = facts.HomeTeam, homeGoals = facts.HomeGoals, away = facts.AwayTeam, awayGoals = facts.AwayGoals },
-            metrics = facts.Moment.Metrics,
-            units = facts.Moment.Metrics.Keys.ToDictionary(k => k, Unit)
-        }, MatchDirectorJson.Options);
+    public Task<Narrated> NarrateAsync(MomentFacts facts, CancellationToken cancellationToken) =>
+        RunAsync(facts, Facts(facts), cancellationToken);
 
+    public Task<Narrated> ReviseAsync(MomentFacts facts, Narrated previous, IReadOnlyList<string> issues, CancellationToken cancellationToken) =>
+        RunAsync(facts, $$"""
+            {{Facts(facts)}}
+
+            Your previous lines had problems a fact-checker found. Rewrite all four lines, fixing every issue.
+            Previous: {{JsonSerializer.Serialize(new { previous.Casual, previous.Analyst, previous.HomeFan, previous.AwayFan }, MatchDirectorJson.Options)}}
+            Issues: {{JsonSerializer.Serialize(issues)}}
+            """, cancellationToken);
+
+    private static string Facts(MomentFacts facts) => JsonSerializer.Serialize(new
+    {
+        moment = facts.Moment.Type.ToString(),
+        meaning = Meaning(facts),
+        minute = facts.Minute,
+        team = facts.Team,
+        opponent = facts.Opponent,
+        player = facts.Player,
+        score = new { home = facts.HomeTeam, homeGoals = facts.HomeGoals, away = facts.AwayTeam, awayGoals = facts.AwayGoals },
+        fans = new { homeFan = facts.HomeTeam, awayFan = facts.AwayTeam },
+        metrics = facts.Moment.Metrics,
+        units = facts.Moment.Metrics.Keys.ToDictionary(k => k, Unit)
+    }, MatchDirectorJson.Options);
+
+    private async Task<Narrated> RunAsync(MomentFacts facts, string prompt, CancellationToken cancellationToken)
+    {
         try
         {
             var response = await agent.RunAsync(prompt, cancellationToken: cancellationToken);
-            var text = response.Text.Trim().Trim('`');
-            if (text.StartsWith("json", StringComparison.OrdinalIgnoreCase))
-                text = text[4..];
-            var lines = JsonSerializer.Deserialize<Lines>(text, MatchDirectorJson.Options);
+            var lines = AgentJson.Parse<Lines>(response.Text);
             if (lines is { Casual.Length: > 0, Analyst.Length: > 0, HomeFan.Length: > 0, AwayFan.Length: > 0 })
                 return new Narrated(lines.Casual, lines.Analyst, lines.HomeFan, lines.AwayFan, "agent");
             logger.LogWarning("Narrator returned unusable output for {MomentId}", facts.Moment.MomentId);
@@ -58,7 +70,7 @@ public sealed class AgentNarrator(AIAgent agent, ILogger<AgentNarrator> logger) 
         return TemplateNarrator.Narrate(facts);
     }
 
-    private static string Unit(string metric) => metric switch
+    internal static string Unit(string metric) => metric switch
     {
         "distance" or "distanceToGoal" or "progression" => "metres",
         "speed" or "shotSpeed" => "metres per second",
@@ -73,7 +85,7 @@ public sealed class AgentNarrator(AIAgent agent, ILogger<AgentNarrator> logger) 
     };
 
     /// <summary>What the moment means in plain words, so the model does not have to guess how to read a metric.</summary>
-    private static string Meaning(MomentFacts facts) => facts.Moment.Type switch
+    internal static string Meaning(MomentFacts facts) => facts.Moment.Type switch
     {
         MomentType.Goal => "the team scored; score already includes this goal",
         MomentType.BigChanceMissed => "a high-quality chance (xg = probability of scoring) was not scored",

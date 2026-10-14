@@ -21,7 +21,15 @@ export function useMatchFeed(): Feed {
       setFeed((f) => (f.info?.matchId === info.matchId ? { ...f, info } : { ...f, info, snapshot: undefined, overlays: [] })),
     )
     connection.on('snapshot', (snapshot: MatchSnapshot) => setFeed((f) => ({ ...f, snapshot })))
-    connection.on('overlay', (overlay: Overlay) => setFeed((f) => ({ ...f, overlays: [overlay, ...f.overlays].slice(0, 30) })))
+    // Reviewed overlays come back with the same ID: replace in place, otherwise add to the top.
+    connection.on('overlay', (overlay: Overlay) =>
+      setFeed((f) => ({
+        ...f,
+        overlays: f.overlays.some((o) => o.overlayId === overlay.overlayId)
+          ? f.overlays.map((o) => (o.overlayId === overlay.overlayId ? overlay : o))
+          : [overlay, ...f.overlays].slice(0, 30),
+      })),
+    )
     connection.onreconnected(() => setFeed((f) => ({ ...f, connected: true })))
     connection.onreconnecting(() => setFeed((f) => ({ ...f, connected: false })))
 

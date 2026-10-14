@@ -50,6 +50,8 @@ builder.AddProject<Projects.MatchDirector_Agents>("agents")
     .WithReference(foundryProject)
     .WithReference(reasoningModel)
     .WithReference(fastModel)
+    .WithEnvironment("Studio__FastModel", "gpt-4.1-mini")      // shown in each overlay's agent trace
+    .WithEnvironment("Studio__ReasoningModel", "gpt-5-mini")
     .WithReference(overlayHub)
     .WithEnvironment("Overlay__IngestKey", ingestKey)
     .WaitFor(matchEvents)

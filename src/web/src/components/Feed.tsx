@@ -1,6 +1,6 @@
-import { clock, LABELS, type Overlay } from '../types'
+import { clock, LABELS, reviewOf, type Overlay } from '../types'
 import { lineFor, teamOf, visible, type View } from '../view'
-import { Chips } from './OverlayCard'
+import { Chips, Insight, ReviewBadge } from './OverlayCard'
 
 export function Feed({ overlays, view }: { overlays: Overlay[]; view: View }) {
   const shown = overlays.filter((o) => visible(o, view))
@@ -18,7 +18,13 @@ export function Feed({ overlays, view }: { overlays: Overlay[]; view: View }) {
               <span className="time">{clock(o.matchClock)}</span>
               <span className="tag">{LABELS[o.type] ?? o.type}</span>
               <p>{lineFor(o, view)}</p>
-              {view.mode === 'analyst' && <Chips metrics={o.metrics} />}
+              {view.mode === 'analyst' && (
+                <>
+                  <Chips metrics={o.metrics} />
+                  {o.variants.insight && <Insight text={o.variants.insight} />}
+                  <ReviewBadge review={reviewOf(o)} />
+                </>
+              )}
             </li>
           )
         })}

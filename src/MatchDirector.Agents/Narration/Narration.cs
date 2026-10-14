@@ -13,6 +13,9 @@ public sealed record Narrated(string Casual, string Analyst, string HomeFan, str
 public interface INarrator
 {
     Task<Narrated> NarrateAsync(MomentFacts facts, CancellationToken cancellationToken);
+
+    /// <summary>Rewrites a narration to fix the issues a reviewer found.</summary>
+    Task<Narrated> ReviseAsync(MomentFacts facts, Narrated previous, IReadOnlyList<string> issues, CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -21,15 +24,19 @@ public interface INarrator
 /// </summary>
 public static partial class NarrationVerifier
 {
-    public static IReadOnlyList<string> UnsupportedNumbers(Narrated narration, MomentFacts facts)
-    {
-        var allowed = facts.AllowedNumbers();
-        return Numbers().Matches(string.Join(" ", narration.Lines))
+    public static IReadOnlyList<string> UnsupportedNumbers(Narrated narration, MomentFacts facts) =>
+        UnsupportedNumbers(narration.Lines, facts.AllowedNumbers());
+
+    public static IReadOnlyList<string> UnsupportedNumbers(IEnumerable<string> lines, IReadOnlySet<double> allowed) =>
+        Numbers().Matches(string.Join(" ", lines))
             .Select(m => m.Value)
             .Where(n => !allowed.Contains(double.Parse(n, CultureInfo.InvariantCulture)))
             .Distinct()
             .ToList();
-    }
+
+    /// <summary>Numbers that appear in a piece of text, such as a tool result.</summary>
+    public static IEnumerable<double> NumbersIn(string text) =>
+        Numbers().Matches(text).Select(m => double.Parse(m.Value, CultureInfo.InvariantCulture));
 
     [GeneratedRegex(@"\d+(?:\.\d+)?")]
     private static partial Regex Numbers();
@@ -39,6 +46,9 @@ public static partial class NarrationVerifier
 public sealed class TemplateNarrator : INarrator
 {
     public Task<Narrated> NarrateAsync(MomentFacts f, CancellationToken cancellationToken) =>
+        Task.FromResult(Narrate(f));
+
+    public Task<Narrated> ReviseAsync(MomentFacts f, Narrated previous, IReadOnlyList<string> issues, CancellationToken cancellationToken) =>
         Task.FromResult(Narrate(f));
 
     public static Narrated Narrate(MomentFacts f)

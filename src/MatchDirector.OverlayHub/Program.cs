@@ -46,7 +46,7 @@ ingest.MapPost("/snapshots", async (JsonElement snapshot, BroadcastState state, 
 
 ingest.MapPost("/overlays", async (JsonElement overlay, BroadcastState state, IHubContext<MatchHub> hub) =>
 {
-    state.Add(overlay);
+    state.Upsert(overlay);
     await hub.Clients.All.SendAsync("overlay", overlay);
     return Results.Accepted();
 });

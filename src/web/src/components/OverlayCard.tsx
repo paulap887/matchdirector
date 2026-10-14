@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { clock, LABELS, type Overlay } from '../types'
+import { clock, LABELS, reviewOf, type AgentStep, type Overlay } from '../types'
 import { lineFor, teamOf, type View } from '../view'
 
 export function OverlayCard({ overlay, view }: { overlay: Overlay; view: View }) {
@@ -10,7 +10,8 @@ export function OverlayCard({ overlay, view }: { overlay: Overlay; view: View })
   )
   const team = teamOf(overlay, view.info)
   const ours = view.mode === 'club' && view.club ? team?.teamId === view.club.teamId : undefined
-  const source = overlay.variants.source === 'agent' ? 'AI narrated · every number verified by code' : 'Template narration (deterministic)'
+  const review = reviewOf(overlay)
+  const insight = overlay.variants.insight
 
   return (
     <article className={`card t-${overlay.type} ${ours === false ? 'theirs' : ''} ${view.mode}`} aria-live="polite">
@@ -22,15 +23,17 @@ export function OverlayCard({ overlay, view }: { overlay: Overlay; view: View })
             #{player.number} {player.name}
           </span>
         )}
+        <ReviewBadge review={review} />
       </div>
       <p className="line">{lineFor(overlay, view)}</p>
       {view.mode === 'analyst' && <Chips metrics={overlay.metrics} />}
+      {insight && (view.mode === 'analyst' || why) && <Insight text={insight} />}
       <button className="why" onClick={() => setWhy(!why)} aria-expanded={why}>
         {why ? 'Hide evidence' : 'Why am I seeing this?'}
       </button>
       {why && (
         <div className="evidence">
-          <p className="source">{source}</p>
+          {overlay.trace && <Trace steps={overlay.trace} />}
           <table>
             <tbody>
               {Object.entries(overlay.metrics).map(([k, v]) => (
@@ -47,6 +50,41 @@ export function OverlayCard({ overlay, view }: { overlay: Overlay; view: View })
         </div>
       )}
     </article>
+  )
+}
+
+export function ReviewBadge({ review }: { review: ReturnType<typeof reviewOf> }) {
+  if (review === 'none') return null
+  const text = { pending: '⏳ fact-checking…', approved: '✓ fact-checked', corrected: '✎ corrected by verifier' }[review]
+  return <span className={`review ${review}`}>{text}</span>
+}
+
+export function Insight({ text }: { text: string }) {
+  return (
+    <p className="insight">
+      <b>Why it matters</b> {text}
+    </p>
+  )
+}
+
+/** How this overlay was made: each agent and code check, in order. */
+function Trace({ steps }: { steps: AgentStep[] }) {
+  return (
+    <ol className="trace" aria-label="How this was made">
+      {steps.map((s, i) => (
+        <li key={i} className={s.agent === 'Number check' || s.model === 'code' ? 'code' : 'agent'}>
+          <span className="who">
+            {s.agent}
+            <small>{s.model === 'code' ? 'deterministic code' : s.model}</small>
+          </span>
+          <span className="what">
+            {s.outcome}
+            {s.durationMs > 0 && <small> · {(s.durationMs / 1000).toFixed(1)} s</small>}
+            {s.detail && <em>{s.detail}</em>}
+          </span>
+        </li>
+      ))}
+    </ol>
   )
 }
 
