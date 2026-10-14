@@ -1,70 +1,123 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
-import { clock, type MatchInfo, type MatchSnapshot, type Mode, type Overlay } from './types'
+import { Feed } from './components/Feed'
+import { Meters } from './components/Meters'
+import { OverlayCard } from './components/OverlayCard'
+import { PlayerCard, TopPlayers } from './components/Players'
+import { Scorebug } from './components/Scorebug'
+import { METRIC_OPTIONS } from './metrics'
+import { usePrefs } from './prefs'
+import type { MatchInfo, MetricKey, Mode, Overlay } from './types'
 import { useMatchFeed } from './useMatchFeed'
+import { buildView, mood, visible, type View } from './view'
 
-const LABELS: Record<string, string> = {
-  Goal: 'Goal',
-  BigChanceMissed: 'Big chance',
-  KeySave: 'Key save',
-  PassingMove: 'Passing move',
-  DifficultPass: 'Killer pass',
-  HighRegain: 'High regain',
-  MomentumShift: 'Momentum',
-  TempoShift: 'Tempo',
-  HalfTime: 'Half-time',
-  FullTime: 'Full-time',
-}
+const MODES: { key: Mode; label: string }[] = [
+  { key: 'casual', label: 'Casual fan' },
+  { key: 'analyst', label: 'Analyst' },
+  { key: 'club', label: 'Club fan' },
+  { key: 'player', label: 'Player focus' },
+]
 
 export default function App() {
   const { info, snapshot, overlays, connected } = useMatchFeed()
-  const [mode, setMode] = useState<Mode>('casual')
-  const live = useLiveOverlay(overlays)
+  const [prefs, setPrefs] = usePrefs()
+  const view = info ? buildView(prefs, info, snapshot) : undefined
+  const live = useLiveOverlay(view ? overlays.filter((o) => visible(o, view)) : [])
 
   return (
-    <div className="studio">
+    <div className={`studio mode-${prefs.mode}`}>
       <header className="topbar">
         <div className="brand">
           Match<span>Director</span>
         </div>
-        <div className="mode" role="group" aria-label="Viewer mode">
-          {(['casual', 'analyst'] as Mode[]).map((m) => (
-            <button key={m} className={m === mode ? 'active' : ''} onClick={() => setMode(m)}>
-              {m === 'casual' ? 'Casual fan' : 'Analyst'}
+        <nav className="mode" aria-label="Viewer mode">
+          {MODES.map((m) => (
+            <button key={m.key} className={m.key === prefs.mode ? 'active' : ''} onClick={() => setPrefs({ mode: m.key })}>
+              {m.label}
             </button>
           ))}
-        </div>
+        </nav>
         <div className={`status ${connected ? 'on' : ''}`}>{connected ? 'Live' : 'Connecting…'}</div>
       </header>
 
-      {info ? <Scorebug info={info} snapshot={snapshot} /> : <div className="waiting">Waiting for kick-off…</div>}
+      {info && <Controls info={info} prefs={prefs} setPrefs={setPrefs} />}
 
-      <main className="grid">
-        <section className="stage">
-          {live ? <OverlayCard key={live.overlayId} overlay={live} mode={mode} info={info} /> : <div className="idle">Watching the game…</div>}
-          {snapshot && info && <Meters info={info} snapshot={snapshot} />}
-        </section>
+      {view ? <Scorebug view={view} /> : <div className="waiting">Waiting for kick-off…</div>}
 
-        <aside className="feed">
-          <h2>Moments</h2>
-          <ol>
-            {overlays.map((o) => (
-              <li key={o.overlayId} className={`t-${o.type}`}>
-                <span className="time">{clock(o.matchClock)}</span>
-                <span className="tag">{LABELS[o.type] ?? o.type}</span>
-                <p>{o.variants[mode]}</p>
-              </li>
-            ))}
-          </ol>
-        </aside>
-      </main>
+      {view && (
+        <main className="grid">
+          <section className="stage">
+            {prefs.mode === 'player' && <PlayerCard view={view} />}
+            {mood(view) && <p className="mood">{mood(view)}</p>}
+            {live ? <OverlayCard key={`${live.overlayId}-${prefs.mode}`} overlay={live} view={view} /> : <Idle view={view} />}
+            <Meters view={view} />
+            {prefs.mode === 'analyst' && <TopPlayers view={view} />}
+          </section>
+          <Feed overlays={overlays} view={view} />
+        </main>
+      )}
 
       <footer>All clubs, players and match data are fictional. Numbers are computed by code; AI only words them.</footer>
     </div>
   )
 }
 
-/** The newest overlay stays on screen for its duration (capped for fast replays). */
+function Controls({ info, prefs, setPrefs }: { info: MatchInfo; prefs: ReturnType<typeof usePrefs>[0]; setPrefs: ReturnType<typeof usePrefs>[1] }) {
+  return (
+    <div className="controls">
+      {prefs.mode === 'club' && (
+        <div className="clubs" role="group" aria-label="Your club">
+          <span>Your club</span>
+          {[info.home, info.away].map((t, i) => (
+            <button key={t.teamId} className={`${i === 0 ? 'home' : 'away'} ${prefs.clubId === t.teamId ? 'active' : ''}`} onClick={() => setPrefs({ clubId: t.teamId })}>
+              {t.name}
+            </button>
+          ))}
+        </div>
+      )}
+      {prefs.mode === 'player' && (
+        <label>
+          Follow
+          <select value={prefs.playerId ?? ''} onChange={(e) => setPrefs({ playerId: e.target.value || undefined })}>
+            <option value="">Choose a player…</option>
+            {[info.home, info.away].map((t) => (
+              <optgroup key={t.teamId} label={t.name}>
+                {t.players.map((p) => (
+                  <option key={p.playerId} value={p.playerId}>
+                    #{p.number} {p.name} ({p.position})
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </label>
+      )}
+      <label>
+        Pin a stat
+        <select value={prefs.metric ?? ''} onChange={(e) => setPrefs({ metric: (e.target.value || undefined) as MetricKey | undefined })}>
+          <option value="">None</option>
+          {METRIC_OPTIONS.map((m) => (
+            <option key={m.key} value={m.key}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+      </label>
+    </div>
+  )
+}
+
+function Idle({ view }: { view: View }) {
+  const text =
+    view.mode === 'club' && !view.club
+      ? 'Pick your club above.'
+      : view.mode === 'player' && view.player
+        ? `Waiting for ${view.player.name} to get involved…`
+        : 'Watching the game…'
+  return <div className="idle">{text}</div>
+}
+
+/** The newest overlay for this viewer stays on screen for its duration (capped for fast replays). */
 function useLiveOverlay(overlays: Overlay[]): Overlay | undefined {
   const latest = overlays[0]
   const [expired, setExpired] = useState<string>()
@@ -74,124 +127,4 @@ function useLiveOverlay(overlays: Overlay[]): Overlay | undefined {
     return () => clearTimeout(timer)
   }, [latest])
   return latest && latest.overlayId !== expired ? latest : undefined
-}
-
-function Scorebug({ info, snapshot }: { info: MatchInfo; snapshot?: MatchSnapshot }) {
-  return (
-    <div className="scorebug">
-      <span className="team home">{info.home.name}</span>
-      <span className="score">
-        {snapshot?.home.goals ?? 0}
-        <i>–</i>
-        {snapshot?.away.goals ?? 0}
-      </span>
-      <span className="team away">{info.away.name}</span>
-      <span className="clock">
-        {snapshot ? clock(snapshot.matchClock) : '00:00'}
-        <small>{snapshot?.period === 2 ? '2nd half' : '1st half'}</small>
-      </span>
-      <span className="venue">{info.venue}</span>
-    </div>
-  )
-}
-
-function OverlayCard({ overlay, mode, info }: { overlay: Overlay; mode: Mode; info?: MatchInfo }) {
-  const [why, setWhy] = useState(false)
-  const player = useMemo(
-    () => [...(info?.home.players ?? []), ...(info?.away.players ?? [])].find((p) => p.playerId === overlay.playerId),
-    [info, overlay.playerId],
-  )
-  const source = overlay.variants.source === 'agent' ? 'AI narrated · numbers verified by code' : 'Template narration'
-
-  return (
-    <article className={`card t-${overlay.type}`} aria-live="polite">
-      <div className="card-head">
-        <span className="tag">{LABELS[overlay.type] ?? overlay.type}</span>
-        <span className="time">{clock(overlay.matchClock)}</span>
-        {player && (
-          <span className="player">
-            #{player.number} {player.name}
-          </span>
-        )}
-      </div>
-      <p className="line">{overlay.variants[mode]}</p>
-      <button className="why" onClick={() => setWhy(!why)} aria-expanded={why}>
-        {why ? 'Hide' : 'Why am I seeing this?'}
-      </button>
-      {why && (
-        <div className="evidence">
-          <p className="source">{source}</p>
-          <table>
-            <tbody>
-              {Object.entries(overlay.metrics).map(([k, v]) => (
-                <tr key={k}>
-                  <th>{k}</th>
-                  <td>{v}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="cites">
-            Evidence: {overlay.evidence.map((id) => <code key={id}>{id.split('-').pop()}</code>)}
-          </p>
-        </div>
-      )}
-    </article>
-  )
-}
-
-function Meters({ info, snapshot }: { info: MatchInfo; snapshot: MatchSnapshot }) {
-  const { home, away, momentum, chaos } = snapshot
-  const rows: [string, number, number, (v: number) => string][] = [
-    ['Possession', home.possession, away.possession, (v) => `${Math.round(v)}%`],
-    ['xG', home.xg, away.xg, (v) => v.toFixed(2)],
-    ['Shots (on target)', home.shots, away.shots, (v) => String(v)],
-    ['Pass accuracy', home.passAccuracy, away.passAccuracy, (v) => `${Math.round(v)}%`],
-    ['Progressive passes', home.progressivePasses, away.progressivePasses, (v) => String(v)],
-  ]
-
-  return (
-    <div className="meters">
-      <div className="stats">
-        {rows.map(([label, h, a, fmt]) => (
-          <div className="stat" key={label}>
-            <span className="h">
-              {fmt(h)}
-              {label.startsWith('Shots') && <small> ({home.shotsOnTarget})</small>}
-            </span>
-            <span className="label">{label}</span>
-            <span className="a">
-              {fmt(a)}
-              {label.startsWith('Shots') && <small> ({away.shotsOnTarget})</small>}
-            </span>
-            <div className="bar">
-              <div style={{ width: `${h + a === 0 ? 50 : (100 * h) / (h + a)}%` }} />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="gauge">
-        <div className="gauge-label">
-          <span>{info.away.name}</span>
-          <strong>Momentum</strong>
-          <span>{info.home.name}</span>
-        </div>
-        <div className="track momentum">
-          <div className="needle" style={{ left: `${50 + momentum / 2}%` }} />
-        </div>
-      </div>
-
-      <div className="gauge">
-        <div className="gauge-label">
-          <span>Control</span>
-          <strong>Game state</strong>
-          <span>Chaos</span>
-        </div>
-        <div className="track chaos">
-          <div className="needle" style={{ left: `${chaos}%` }} />
-        </div>
-      </div>
-    </div>
-  )
 }

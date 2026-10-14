@@ -21,6 +21,21 @@ export type TeamStats = {
   fouls: number
 }
 
+export type PlayerStats = {
+  playerId: string
+  teamId: string
+  passes: number
+  passesCompleted: number
+  progressivePasses: number
+  shots: number
+  goals: number
+  xg: number
+  distanceCarried: number
+  tackles: number
+  interceptions: number
+  fastestShot?: number
+}
+
 export type MatchSnapshot = {
   matchId: string
   matchClock: string
@@ -29,6 +44,7 @@ export type MatchSnapshot = {
   away: TeamStats
   momentum: number
   chaos: number
+  players: PlayerStats[]
 }
 
 export type Overlay = {
@@ -42,9 +58,25 @@ export type Overlay = {
   metrics: Record<string, number>
   evidence: string[]
   variants: Record<string, string>
+  participants?: string[]
 }
 
-export type Mode = 'casual' | 'analyst'
+export type Mode = 'casual' | 'analyst' | 'club' | 'player'
+
+export type MetricKey = 'possession' | 'xg' | 'shots' | 'passAccuracy' | 'progressivePasses' | 'momentum' | 'chaos'
+
+export const LABELS: Record<string, string> = {
+  Goal: 'Goal',
+  BigChanceMissed: 'Big chance',
+  KeySave: 'Key save',
+  PassingMove: 'Passing move',
+  DifficultPass: 'Killer pass',
+  HighRegain: 'High regain',
+  MomentumShift: 'Momentum',
+  TempoShift: 'Tempo',
+  HalfTime: 'Half-time',
+  FullTime: 'Full-time',
+}
 
 export function clock(timeSpan: string): string {
   const [h, m, s] = timeSpan.split(':')
