@@ -19,7 +19,7 @@ const MODES: { key: Mode; label: string }[] = [
 ]
 
 export default function App() {
-  const { info, snapshot, overlays, connected } = useMatchFeed()
+  const { info, snapshot, overlays, connected, status } = useMatchFeed()
   const [prefs, setPrefs] = usePrefs()
   const view = info ? buildView(prefs, info, snapshot) : undefined
   const live = useLiveOverlay(view ? overlays.filter((o) => visible(o, view)) : [])
@@ -41,6 +41,8 @@ export default function App() {
       </header>
 
       {info && <Controls info={info} prefs={prefs} setPrefs={setPrefs} />}
+
+      {connected && status === 'idle' && <KickOff hasPlayed={!!info} />}
 
       {view ? <Scorebug view={view} /> : <div className="waiting">Waiting for kick-off…</div>}
 
@@ -103,6 +105,36 @@ function Controls({ info, prefs, setPrefs }: { info: MatchInfo; prefs: ReturnTyp
           ))}
         </select>
       </label>
+    </div>
+  )
+}
+
+/**
+ * Matches play on demand, so the studio's models only run while someone is watching. Connecting already asks for
+ * a match, so a new viewer sees it start within seconds; afterwards the button asks for another.
+ */
+function KickOff({ hasPlayed }: { hasPlayed: boolean }) {
+  const [requested, setRequested] = useState(true)
+  useEffect(() => {
+    if (!requested) return
+    const timer = setTimeout(() => setRequested(false), 20000)
+    return () => clearTimeout(timer)
+  }, [requested])
+
+  const kickOff = () => {
+    setRequested(true)
+    void fetch('/api/kickoff', { method: 'POST' })
+  }
+
+  return (
+    <div className="kickoff" role="status">
+      <div>
+        <strong>{requested ? 'Kicking off…' : hasPlayed ? 'Full time. Fancy another?' : 'No match on right now.'}</strong>
+        <p>Matches play on demand, so the AI studio only runs while someone is watching.</p>
+      </div>
+      <button onClick={kickOff} disabled={requested}>
+        {requested ? 'Starting…' : 'Kick off a match'}
+      </button>
     </div>
   )
 }

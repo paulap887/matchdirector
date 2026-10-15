@@ -151,3 +151,10 @@ footer { font-size: 12px; color: var(--muted); text-align: center; }
 .trace small { color: var(--muted); font-weight: 400; }
 .trace em { display: block; color: var(--away); font-style: normal; font-size: 12px; margin-top: 2px; }
 @media (max-width: 600px) { .trace li { grid-template-columns: 1fr; gap: 2px; } }
+
+/* On-demand kick-off */
+.kickoff { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; background: var(--panel-2); border: 1px solid var(--line); border-left: 6px solid var(--accent); border-radius: 12px; padding: 14px 18px; }
+.kickoff strong { font-size: 18px; }
+.kickoff p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.kickoff button { background: var(--accent); color: #111; border: 0; border-radius: 999px; padding: 10px 18px; font-weight: 800; }
+.kickoff button:disabled { opacity: 0.6; cursor: progress; }

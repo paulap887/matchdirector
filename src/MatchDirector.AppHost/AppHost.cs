@@ -41,6 +41,8 @@ var overlayHub = builder.AddProject<Projects.MatchDirector_OverlayHub>("overlayh
 
 builder.AddProject<Projects.MatchDirector_Simulator>("simulator")
     .WithReference(matchEvents)
+    .WithReference(overlayHub)                              // matches play on demand, asked of the hub
+    .WithEnvironment("Overlay__IngestKey", ingestKey)
     .WaitFor(matchEvents)
     .WithComputeEnvironment(aca)
     .PublishAsAzureContainerApp((_, app) => SingleSmallReplica(app));
