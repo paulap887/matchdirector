@@ -1,6 +1,7 @@
 # MatchDirector
 
 Hackathon entry: AI broadcast studio over synthetic football events (.NET 10 + Aspire, React/Vite, Microsoft Foundry, Agent Framework).
+Keep the rules below in sync with `.github/copilot-instructions.md` (GitHub Copilot's instructions).
 
 ## Rules
 - Numbers come from code (StatsEngine); LLMs only narrate. Every claim an agent makes must cite event IDs.
