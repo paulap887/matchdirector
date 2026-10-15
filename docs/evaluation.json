@@ -1,0 +1,147 @@
+{
+  "generated": "2026-10-15T12:00:35.054395+00:00",
+  "options": {
+    "matches": 50,
+    "liveMatches": 2,
+    "maxMoments": 40,
+    "redTeam": 15,
+    "firstSeed": 1000,
+    "endpoint": "(set)",
+    "fast": "fast",
+    "reasoning": "reasoning",
+    "fastModel": "gpt-4.1-mini",
+    "reasoningModel": "gpt-5-mini",
+    "out": "docs/evaluation"
+  },
+  "deterministic": {
+    "matches": 50,
+    "events": 96650,
+    "moments": 1901,
+    "momentsWithValidEvidence": 1901,
+    "templateNarrations": 1901,
+    "templatesPassingNumberCheck": 1901,
+    "goals": 144,
+    "goalMoments": 144,
+    "eventsPerSecond": 113369,
+    "meanGoals": 2.88,
+    "meanShots": 27.5,
+    "meanPassAccuracy": 78.6,
+    "momentsPerMatch": {
+      "HighRegain": 11.1,
+      "PassingMove": 8.4,
+      "DifficultPass": 5.4,
+      "KeySave": 2.9,
+      "Goal": 2.9,
+      "MomentumShift": 2.6,
+      "TempoShift": 1.4,
+      "BigChanceMissed": 1.2,
+      "HalfTime": 1,
+      "FullTime": 1
+    }
+  },
+  "live": {
+    "matches": 2,
+    "moments": 80,
+    "agentNarrations": 75,
+    "numberCheckRejections": 5,
+    "reviewed": 34,
+    "criticApproved": 23,
+    "criticFlagged": 11,
+    "rewritten": 6,
+    "templateAfterReview": 2,
+    "insightsRequested": 22,
+    "insightsKept": 15,
+    "insightsDropped": 7,
+    "narrator": {
+      "count": 80,
+      "p50": 1776,
+      "p95": 2338
+    },
+    "analyst": {
+      "count": 22,
+      "p50": 6326,
+      "p95": 7708
+    },
+    "critic": {
+      "count": 40,
+      "p50": 4945,
+      "p95": 8837
+    },
+    "sampleIssues": [
+      "KeySave: analyst: Misstates who took the shot \u2014 Piotr Halvik is the goalkeeper who made the save, not the shooter.",
+      "MomentumShift: insight: Claims \u0027despite overall momentum -42.5\u0027 imply the momentum is against Redmoor Rovers, but per the metric (positive = home on top) a momentum of -42.5 actually favors the away team, Redmoor Rovers \u2014 so \u0027despite\u0027 is incorrect.",
+      "PassingMove: homeFan: Not written as a supporter of the home club (Kestrel Bay FC). The line speaks in third person about Kestrel Bay rather than from a home-fan perspective (\u0027we/us\u0027 for the home team).",
+      "KeySave: insight: States the score as \u00220\u201330\u0022 which is incorrect \u2014 the facts show 0\u20130 at minute 35.",
+      "KeySave: insight: Says \u0022despite their 63.1% possession\u0022 implying Redmoor lacked control; the facts show Redmoor (the team of Halvik) had 63.1% possession, so the phrasing is misleading/wrong.",
+      "BigChanceMissed: insight: Claims Redmoor was \u0022on top\u0022 by citing \u0022momentum -18.8\u0022 are not supported by the provided evidence. The get_match_stats output shows momentum: -18.8 but does not indicate which team that favors, so stating it as demonstrating Redmoor\u0027s momentum (and that the miss \u0022halts Redmoor\u0027s ... momentum\u0022) is not supported by the facts.",
+      "KeySave: homeFan: written as a supporter praising/crediting Redmoor Rovers\u0027 keeper\u2014homeFan must be a supporter of the home club (Kestrel Bay FC) and should not frame \u0027we/us\u0027 as Redmoor or praise the opponent in that way.",
+      "Goal: insight: Incorrect score formatting/claim \u2014 reads \u0022makes it 1\u201330\u0022 but the facts show the score is 1-0.",
+      "PassingMove: homeFan: Presents the 10-pass move as belonging to the home side by saying \u0022our 10-pass runs\u0022, but the facts show the 10-pass sequence was by Redmoor Rovers (the away team); a homeFan must speak as a supporter of the home club (Kestrel Bay).",
+      "KeySave: homeFan: Attributes the save to keep \u0022us\u0022 (the home side) level \u2014 Piotr Halvik plays for Redmoor Rovers (the away team), so the line wrongly frames him as keeping Kestrel Bay level.",
+      "KeySave: insight: Claims the save \u0022halted Kestrel\u0027s momentum\u0022 which is not supported by the provided evidence. The tools show a match momentum value (50.3) but do not document Kestrel Bay building momentum that was stopped by this save, so the causal claim is unsupported.",
+      "KeySave: homeFan: Suggests the save \u0022keeps Kestrel Bay hopeful\u0022 \u2014 Piotr Halvik is Redmoor Rovers\u0027 goalkeeper and his save preserved Redmoor\u0027s lead, so this line misstates the effect for the home team."
+    ],
+    "sampleInsights": [
+      "KeySave (2\u0027): Halvik\u2019s save denied a 0.156 expected-goals chance from 14.3 metres (28.7\u00B0), keeping it 0-0 and sustaining Kestrel Bay\u2019s 60.1% possession and \u002B55.2 momentum early \u2014 prevents an early lead and preserves pressure.",
+      "HalfTime (47\u0027): Kestrel Bay lead 1-0 despite 39.1% possession vs Redmoor\u2019s 60.9% and similar xG (1.26 vs 1.19). Okonkwe\u2019s 45\u0027 finish (xG 0.254) flips state while momentum is -17.2 favoring Redmoor.",
+      "KeySave (63\u0027): Halvik\u2019s 63\u0027 save denied a 0.181 xG chance (13.1 m, 31.1\u00B0), keeping score 1\u20130; with Redmoor 57.8% possession versus Kestrel\u2019s 129 pressures and momentum \u002B42.4, Kestrel maintain control and game momentum.",
+      "MomentumShift (72\u0027): At 72\u0027, Redmoor\u0027s momentum (-41.9) shows sustained pressure after Kestrel\u0027s 70\u0027 goal: Redmoor have 56.5% possession, 369 passes and 86 progressive passes \u2014 they\u0027re controlling play and forcing a push to chase a 2-0 deficit.",
+      "BigChanceMissed (72\u0027): Corvel\u2019s 0.58 xG miss at 72\u0027 leaves Redmoor trailing 2-0, squandering their best chance to cut the deficit; despite 56.8% possession and Corvel\u2019s 11 shots (xG 1.63), momentum remains -40.3 for Kestrel.",
+      "Goal (8\u0027): 8\u0027 Corvel goal (xG 0.143, 15 m, 27\u00B0) makes it 0\u20131 from a 13s, 3-pass move. Kestrel still have 54.7% possession, but momentum is -42.3, shifting control and momentum to Redmoor despite less possession."
+    ]
+  },
+  "redTeam": {
+    "moments": 15,
+    "attacks": [
+      {
+        "name": "Invented statistic",
+        "description": "adds a season total that was never computed",
+        "expectedCatcher": "code",
+        "samples": 15,
+        "caughtByCode": 15,
+        "caughtByCritic": 0,
+        "caught": 15
+      },
+      {
+        "name": "Wrong team",
+        "description": "credits the moment to the other club",
+        "expectedCatcher": "critic",
+        "samples": 10,
+        "caughtByCode": 0,
+        "caughtByCritic": 10,
+        "caught": 10
+      },
+      {
+        "name": "Swapped fan lines",
+        "description": "home supporters cheer for the away club and vice versa",
+        "expectedCatcher": "critic",
+        "samples": 15,
+        "caughtByCode": 0,
+        "caughtByCritic": 14,
+        "caught": 14
+      },
+      {
+        "name": "Wrong score story",
+        "description": "says the wrong club is ahead",
+        "expectedCatcher": "critic",
+        "samples": 15,
+        "caughtByCode": 0,
+        "caughtByCritic": 15,
+        "caught": 15
+      },
+      {
+        "name": "Invented history",
+        "description": "adds a historical claim with no number in it",
+        "expectedCatcher": "critic",
+        "samples": 15,
+        "caughtByCode": 0,
+        "caughtByCritic": 15,
+        "caught": 15
+      }
+    ],
+    "cleanSamples": 15,
+    "cleanFlaggedByCritic": 0,
+    "criticEvaluated": true,
+    "falseAlarms": []
+  }
+}

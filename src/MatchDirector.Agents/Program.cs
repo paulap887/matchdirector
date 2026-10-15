@@ -11,7 +11,7 @@ var builder = Host.CreateApplicationBuilder(args);
 
 builder.AddServiceDefaults();
 builder.AddAzureEventHubConsumerClient("agents-group");
-builder.Services.AddOpenTelemetry().WithTracing(t => t.AddSource(Director.Activity.Name, "*Microsoft.Agents.AI*"));
+builder.Services.AddOpenTelemetry().WithTracing(t => t.AddSource(StudioPipeline.Activity.Name, "*Microsoft.Agents.AI*"));
 
 // The studio's agents run on two Foundry deployments: "fast" (live narration) and "reasoning" (review and analysis).
 // Without them the director still runs, using deterministic template narration only.
@@ -59,6 +59,7 @@ builder.Services.AddHttpClient<OverlayPublisher>(http =>
     http.BaseAddress = new Uri("https+http://overlayhub");
     http.DefaultRequestHeaders.Add(OverlayPublisher.IngestKeyHeader, builder.Configuration["Overlay:IngestKey"] ?? "");
 });
+builder.Services.AddSingleton<StudioPipeline>();
 builder.Services.AddSingleton<Director>();
 builder.Services.AddHostedService<Worker>();
 
