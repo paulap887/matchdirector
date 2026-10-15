@@ -10,6 +10,7 @@ builder.AddServiceDefaults();
 // Payloads are passed through as the JSON the agent service produced (contract types, camelCase).
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<BroadcastState>();
+builder.Services.AddSingleton<Demand>();
 
 var app = builder.Build();
 
@@ -18,7 +19,14 @@ app.UseStaticFiles(); // the React app, copied into wwwroot when published
 app.MapHub<MatchHub>("/hubs/match");
 
 // Current state for viewers who join mid-match.
-app.MapGet("/api/state", (BroadcastState state) => state.Current());
+app.MapGet("/api/state", (BroadcastState state, Demand demand) => state.Current(demand.Status));
+
+// A viewer asks for a new match. At most one request is pending, so repeated presses cost nothing extra.
+app.MapPost("/api/kickoff", (Demand demand) =>
+{
+    demand.RequestKickoff();
+    return Results.Accepted();
+});
 
 // Ingest from the agent service only: requires the shared key that the AppHost generates.
 var ingestKey = Encoding.UTF8.GetBytes(app.Configuration["Overlay:IngestKey"] ?? "");
@@ -44,6 +52,16 @@ ingest.MapPost("/snapshots", async (JsonElement snapshot, BroadcastState state, 
     return Results.Accepted();
 });
 
+// The simulator polls for demand and reports whether a match is playing.
+ingest.MapPost("/demand/claim", (Demand demand) => new { claimed = demand.TryClaimKickoff(), viewers = demand.Viewers });
+ingest.MapGet("/demand", (Demand demand) => new { viewers = demand.Viewers });
+ingest.MapPost("/status", async (StatusReport report, Demand demand, IHubContext<MatchHub> hub) =>
+{
+    demand.Report(report.Status);
+    await hub.Clients.All.SendAsync("status", new { status = demand.Status });
+    return Results.Accepted();
+});
+
 ingest.MapPost("/overlays", async (JsonElement overlay, BroadcastState state, IHubContext<MatchHub> hub) =>
 {
     state.Upsert(overlay);
@@ -54,3 +72,5 @@ ingest.MapPost("/overlays", async (JsonElement overlay, BroadcastState state, IH
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+internal sealed record StatusReport(string Status);

@@ -2,11 +2,13 @@ import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
 import { useEffect, useState } from 'react'
 import type { MatchInfo, MatchSnapshot, Overlay } from './types'
 
-type Feed = { info?: MatchInfo; snapshot?: MatchSnapshot; overlays: Overlay[]; connected: boolean }
+export type Status = 'idle' | 'playing'
+
+type Feed = { info?: MatchInfo; snapshot?: MatchSnapshot; overlays: Overlay[]; connected: boolean; status: Status }
 
 /** Live match state from the overlay hub: initial state over HTTP, then pushes over SignalR. */
 export function useMatchFeed(): Feed {
-  const [feed, setFeed] = useState<Feed>({ overlays: [], connected: false })
+  const [feed, setFeed] = useState<Feed>({ overlays: [], connected: false, status: 'idle' })
 
   useEffect(() => {
     let disposed = false
@@ -30,14 +32,21 @@ export function useMatchFeed(): Feed {
           : [overlay, ...f.overlays].slice(0, 30),
       })),
     )
+    connection.on('status', (s: { status: Status }) => setFeed((f) => ({ ...f, status: s.status })))
     connection.onreconnected(() => setFeed((f) => ({ ...f, connected: true })))
     connection.onreconnecting(() => setFeed((f) => ({ ...f, connected: false })))
 
     fetch('/api/state')
       .then((r) => r.json())
-      .then((s: { matchInfo?: MatchInfo; snapshot?: MatchSnapshot; overlays: Overlay[] }) => {
+      .then((s: { matchInfo?: MatchInfo; snapshot?: MatchSnapshot; overlays: Overlay[]; status?: Status }) => {
         if (!disposed)
-          setFeed((f) => ({ ...f, info: s.matchInfo ?? undefined, snapshot: s.snapshot ?? undefined, overlays: [...s.overlays].reverse() }))
+          setFeed((f) => ({
+            ...f,
+            info: s.matchInfo ?? undefined,
+            snapshot: s.snapshot ?? undefined,
+            overlays: [...s.overlays].reverse(),
+            status: s.status ?? 'idle',
+          }))
       })
       .catch(() => {})
 

@@ -3,8 +3,21 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace MatchDirector.OverlayHub;
 
-/// <summary>Viewers connect here; the server pushes matchInfo, snapshot and overlay messages.</summary>
-public sealed class MatchHub : Hub;
+/// <summary>Viewers connect here; the server pushes matchInfo, snapshot, overlay and status messages.</summary>
+public sealed class MatchHub(Demand demand) : Hub
+{
+    public override Task OnConnectedAsync()
+    {
+        demand.ViewerJoined();
+        return base.OnConnectedAsync();
+    }
+
+    public override Task OnDisconnectedAsync(Exception? exception)
+    {
+        demand.ViewerLeft();
+        return base.OnDisconnectedAsync(exception);
+    }
+}
 
 /// <summary>Latest broadcast state, replayed to viewers who connect mid-match.</summary>
 public sealed class BroadcastState
@@ -55,9 +68,9 @@ public sealed class BroadcastState
         }
     }
 
-    public object Current()
+    public object Current(string status)
     {
         lock (_lock)
-            return new { matchInfo = _matchInfo, snapshot = Snapshot, overlays = _overlays.ToList() };
+            return new { matchInfo = _matchInfo, snapshot = Snapshot, overlays = _overlays.ToList(), status };
     }
 }

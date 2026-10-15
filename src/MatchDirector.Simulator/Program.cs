@@ -26,6 +26,20 @@ else
 {
     builder.Services.AddSingleton<IMatchEventSink, LoggingEventSink>();
 }
+// On-demand play when the AppHost wires up the overlay hub; otherwise matches play back to back.
+var overlayHub = builder.Configuration["services:overlayhub:https:0"] ?? builder.Configuration["services:overlayhub:http:0"];
+if (overlayHub is not null && builder.Configuration.GetValue("Simulator:OnDemand", true))
+{
+    builder.Services.AddHttpClient<IMatchDemand, HubDemand>(http =>
+    {
+        http.BaseAddress = new Uri("https+http://overlayhub");
+        http.DefaultRequestHeaders.Add(HubDemand.IngestKeyHeader, builder.Configuration["Overlay:IngestKey"] ?? "");
+    });
+}
+else
+{
+    builder.Services.AddSingleton<IMatchDemand, ContinuousDemand>();
+}
 builder.Services.AddHostedService<Worker>();
 
 builder.Build().Run();
