@@ -15,6 +15,12 @@ jobs:
           global-json-file: global.json
       - run: dotnet build --configuration Release
       - run: dotnet test --configuration Release --no-build
+      - name: Evaluation guarantees (deterministic, no models)
+        run: dotnet run --project eval/MatchDirector.Eval --configuration Release --no-build -- --matches 30 --out artifacts/evaluation
+      - uses: actions/upload-artifact@v4
+        with:
+          name: evaluation
+          path: artifacts/evaluation.*
 
   web:
     runs-on: ubuntu-latest

@@ -20,7 +20,21 @@ MatchDirector turns synthetic football events into real-time insights, broadcast
 | 2. Interpret | Deterministic stats: pass quality, speed, momentum, control vs. chaos | `src/MatchDirector.StatsEngine` |
 | 3. Explain | Agent team explains why moments matter, with evidence | `src/MatchDirector.Agents` |
 | 4. Render | Timed, machine-readable overlays pushed live | `src/MatchDirector.OverlayHub`, `src/web` |
-| 5. Personalise | Analyst / casual / club / player-focus modes, multiple languages | `src/MatchDirector.Agents`, `src/web` |
+| 5. Personalise | Casual, analyst, club-fan and player-focus views; pin a stat; shareable view links | `src/MatchDirector.Agents`, `src/web` |
+
+## Evaluation
+
+[`eval/MatchDirector.Eval`](eval/MatchDirector.Eval) measures the "numbers come from code" promise and the agent team. Latest results ([full report](docs/evaluation.md)):
+
+| What | Result |
+|---|---|
+| Moments citing valid, earlier events | **100%** of 1,901 (50 matches, 96,650 events) |
+| Fallback narration passing the number check | **100%** |
+| Invented statistics blocked by code (red team) | **100%** |
+| Meaning errors caught by the verifier critic (red team) | **98.2%**, with **0%** false alarms on correct lines |
+| Narrator latency, live models | p50 1.8 s · p95 2.3 s |
+
+The deterministic guarantees run in CI on every push, and the build fails if any of them drops below 100%.
 
 ## Architecture
 
@@ -39,7 +53,9 @@ src/
   MatchDirector.OverlayHub       Real-time overlay API (SignalR)
   web                            React + Vite overlay UI
 tests/                           Unit tests
-infra/                           Azure infrastructure (Bicep, azd)
+eval/                            Evaluation harness (guarantees, live agents, red team)
+docs/                            Evaluation report
+infra/                           Azure infrastructure (Bicep)
 ```
 
 ## Run locally
