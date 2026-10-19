@@ -30,6 +30,9 @@ public sealed class BroadcastState
 
     public JsonElement? Snapshot { get; set; }
 
+    /// <summary>The full-time report of the current match, once written.</summary>
+    public JsonElement? Recap { get; set; }
+
     /// <summary>Records the match on air. Only a different match clears the screen; repeats of the same one just refresh it.</summary>
     public void Start(JsonElement matchInfo)
     {
@@ -38,6 +41,7 @@ public sealed class BroadcastState
             if (MatchId(_matchInfo) != MatchId(matchInfo))
             {
                 Snapshot = null;
+                Recap = null;
                 _overlays.Clear();
             }
             _matchInfo = matchInfo;
@@ -71,6 +75,6 @@ public sealed class BroadcastState
     public object Current(string status)
     {
         lock (_lock)
-            return new { matchInfo = _matchInfo, snapshot = Snapshot, overlays = _overlays.ToList(), status };
+            return new { matchInfo = _matchInfo, snapshot = Snapshot, overlays = _overlays.ToList(), status, recap = Recap };
     }
 }

@@ -13,7 +13,7 @@ Microsoft Foundry and Microsoft Agent Framework. Keep these rules in sync with `
 ## Architecture
 1. **Ingest**: `MatchDirector.Simulator` plays seeded, deterministic matches and publishes `MatchInfo` and `MatchEvent` to Event Hubs.
 2. **Interpret**: `MatchDirector.StatsEngine` (`MatchAnalyzer`) turns events into stats and `Moment`s. Each moment carries its metrics and the event IDs (`Evidence`) they came from.
-3. **Explain**: `MatchDirector.Agents`. The `Director` (code) orchestrates a fast lane (Narrator agent, then a code number check, then on air) and a review lane (Tactical analyst with code tools, Verifier critic, rewrite and recheck).
+3. **Explain**: `MatchDirector.Agents`. The `Director` (code) orchestrates a fast lane (Narrator agent, then a code number check, then on air) and a review lane (Tactical analyst with code tools, Verifier critic, rewrite and recheck). At full time the Recap writer drafts a report from `RecapFacts`; it is number-checked and critic-reviewed, with `TemplateRecap` as the fallback. Player of the match comes from `PlayerRatings` in the stats engine.
 4. **Render**: `MatchDirector.OverlayHub` pushes overlays over SignalR; `src/web` draws them.
 5. **Personalise**: viewer modes in `src/web` (casual, analyst, club fan, player focus) select different overlay variants and layouts.
 

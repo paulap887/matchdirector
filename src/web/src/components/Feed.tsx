@@ -1,5 +1,5 @@
 import { clock, LABELS, reviewOf, type Overlay } from '../types'
-import { lineFor, teamOf, visible, type View } from '../view'
+import { isOurs, lineFor, visible, type View } from '../view'
 import { Chips, Insight, ReviewBadge } from './OverlayCard'
 
 export function Feed({ overlays, view }: { overlays: Overlay[]; view: View }) {
@@ -12,7 +12,7 @@ export function Feed({ overlays, view }: { overlays: Overlay[]; view: View }) {
       {shown.length === 0 && <p className="empty">Nothing yet. Moments appear here as they happen.</p>}
       <ol>
         {shown.map((o) => {
-          const ours = view.mode === 'club' && view.club ? teamOf(o, view.info)?.teamId === view.club.teamId : undefined
+          const ours = isOurs(o, view)
           return (
             <li key={o.overlayId} className={`t-${o.type} ${ours === false ? 'theirs' : ''}`}>
               <span className="time">{clock(o.matchClock)}</span>

@@ -18,7 +18,7 @@ MatchDirector turns synthetic football events into real-time insights, broadcast
 |---|---|---|
 | 1. Ingest | Synthetic match simulator streams events in real time | `src/MatchDirector.Simulator` |
 | 2. Interpret | Deterministic stats: pass quality, speed, momentum, control vs. chaos | `src/MatchDirector.StatsEngine` |
-| 3. Explain | Agent team explains why moments matter, with evidence | `src/MatchDirector.Agents` |
+| 3. Explain | Agent team explains why moments matter, with evidence, and writes a fact-checked full-time report | `src/MatchDirector.Agents` |
 | 4. Render | Timed, machine-readable overlays pushed live | `src/MatchDirector.OverlayHub`, `src/web` |
 | 5. Personalise | Casual, analyst, club-fan and player-focus views; pin a stat; shareable view links | `src/MatchDirector.Agents`, `src/web` |
 
@@ -29,7 +29,7 @@ MatchDirector turns synthetic football events into real-time insights, broadcast
 | What | Result |
 |---|---|
 | Moments citing valid, earlier events | **100%** of 1,901 (50 matches, 96,650 events) |
-| Fallback narration passing the number check | **100%** |
+| Fallback narration and full-time reports passing the number check | **100%** |
 | Invented statistics blocked by code (red team) | **100%** |
 | Meaning errors caught by the verifier critic (red team) | **98.2%**, with **0%** false alarms on correct lines |
 | Narrator latency, live models | p50 1.8 s · p95 2.3 s |

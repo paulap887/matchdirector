@@ -4,6 +4,7 @@ import { Feed } from './components/Feed'
 import { Meters } from './components/Meters'
 import { OverlayCard } from './components/OverlayCard'
 import { PlayerCard, TopPlayers } from './components/Players'
+import { RecapCard } from './components/RecapCard'
 import { Scorebug } from './components/Scorebug'
 import { METRIC_OPTIONS } from './metrics'
 import { usePrefs } from './prefs'
@@ -19,7 +20,7 @@ const MODES: { key: Mode; label: string }[] = [
 ]
 
 export default function App() {
-  const { info, snapshot, overlays, connected, status } = useMatchFeed()
+  const { info, snapshot, overlays, connected, status, recap } = useMatchFeed()
   const [prefs, setPrefs] = usePrefs()
   const view = info ? buildView(prefs, info, snapshot) : undefined
   const live = useLiveOverlay(view ? overlays.filter((o) => visible(o, view)) : [])
@@ -49,6 +50,7 @@ export default function App() {
       {view && (
         <main className="grid">
           <section className="stage">
+            {recap && recap.matchId === view.info.matchId && <RecapCard recap={recap} view={view} />}
             {prefs.mode === 'player' && <PlayerCard view={view} />}
             {mood(view) && <p className="mood">{mood(view)}</p>}
             {live ? <OverlayCard key={`${live.overlayId}-${prefs.mode}`} overlay={live} view={view} /> : <Idle view={view} />}

@@ -18,6 +18,13 @@ export function buildView(prefs: Prefs, info: MatchInfo, snapshot?: MatchSnapsho
   return { mode: prefs.mode, info, snapshot, club, player: player && team && { ...player, team }, metric: prefs.metric }
 }
 
+/** The variant key this viewer reads: analyst, a club's fans, or the casual line. */
+export function variantFor(view: View): string {
+  if (view.mode === 'analyst') return 'analyst'
+  if (view.mode === 'club' && view.club) return view.club.teamId === view.info.home.teamId ? 'homeFan' : 'awayFan'
+  return 'casual'
+}
+
 /** The line this viewer should read for an overlay. */
 export function lineFor(overlay: Overlay, view: View): string {
   if (view.mode === 'analyst') return overlay.variants.analyst
@@ -33,8 +40,20 @@ export function visible(overlay: Overlay, view: View): boolean {
   return true
 }
 
+/** The club a moment belongs to, from its main player or else the players involved; undefined for match-wide moments. */
+const MATCH_WIDE = ['TempoShift', 'HalfTime', 'FullTime']
+
 export function teamOf(overlay: Overlay, info: MatchInfo): TeamInfo | undefined {
-  return [info.home, info.away].find((t) => t.players.some((p) => p.playerId === overlay.playerId))
+  if (MATCH_WIDE.includes(overlay.type)) return undefined
+  const playerId = overlay.playerId ?? overlay.participants?.[0]
+  return playerId ? [info.home, info.away].find((t) => t.players.some((p) => p.playerId === playerId)) : undefined
+}
+
+/** For club fans: true for their club's moments, false for the other club's, undefined for match-wide ones. */
+export function isOurs(overlay: Overlay, view: View): boolean | undefined {
+  if (view.mode !== 'club' || !view.club) return undefined
+  const team = teamOf(overlay, view.info)
+  return team ? team.teamId === view.club.teamId : undefined
 }
 
 /** Momentum and tempo in plain words, from the viewer's side where there is one. */

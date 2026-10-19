@@ -8,7 +8,11 @@ namespace MatchDirector.Eval;
 public sealed record LiveResult(
     int Matches, int Moments, int AgentNarrations, int NumberCheckRejections, int Reviewed, int CriticApproved, int CriticFlagged,
     int Rewritten, int TemplateAfterReview, int InsightsRequested, int InsightsKept, int InsightsDropped,
-    Latency Narrator, Latency Analyst, Latency Critic, IReadOnlyList<string> SampleIssues, IReadOnlyList<string> SampleInsights);
+    Latency Narrator, Latency Analyst, Latency Critic, IReadOnlyList<string> SampleIssues, IReadOnlyList<string> SampleInsights,
+    IReadOnlyList<RecapOutcome> Recaps);
+
+/// <summary>How one full-time report came out: who wrote it and what the checks said.</summary>
+public sealed record RecapOutcome(string MatchId, string Headline, string Source, IReadOnlyList<MatchDirector.Contracts.AgentStep> Trace, string Casual);
 
 public sealed record Latency(int Count, int P50, int P95)
 {
@@ -31,6 +35,7 @@ public static class LiveEval
         var critic = new List<int>();
         var issues = new List<string>();
         var insights = new List<string>();
+        var recaps = new List<RecapOutcome>();
 
         for (var i = 0; i < options.LiveMatches; i++)
         {
@@ -71,12 +76,15 @@ public static class LiveEval
                     Console.Write(result.FirstReview.Pass ? "✓" : "✎");
                 }
             }
-            Console.WriteLine();
+            // Every event has been ingested (the moment cap only limits narration), so this is the real full-time state.
+            var recap = await pipeline.RecapAsync(session.RecapFacts(), CancellationToken.None);
+            recaps.Add(new RecapOutcome(match.MatchId, recap.Headline, recap.Variants["source"], recap.Trace!, recap.Variants["casual"]));
+            Console.WriteLine($" recap [{recap.Variants["source"]}]: {recap.Headline}");
         }
 
         return new LiveResult(options.LiveMatches, moments, agent, rejected, reviewed, approved, flagged, rewritten, template,
             insightsRequested, insightsKept, insightsDropped, Latency.Of(narrator), Latency.Of(analyst), Latency.Of(critic),
-            issues.Take(12).ToList(), insights.Take(6).ToList());
+            issues.Take(12).ToList(), insights.Take(6).ToList(), recaps);
     }
 
     private static AgentStep? Step(Overlay overlay, string agent) => overlay.Trace?.FirstOrDefault(s => s.Agent == agent);

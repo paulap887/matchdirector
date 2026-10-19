@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { clock, LABELS, reviewOf, type AgentStep, type Overlay } from '../types'
-import { lineFor, teamOf, type View } from '../view'
+import { isOurs, lineFor, type View } from '../view'
 
 export function OverlayCard({ overlay, view }: { overlay: Overlay; view: View }) {
   const [why, setWhy] = useState(view.mode === 'analyst')
@@ -8,8 +8,7 @@ export function OverlayCard({ overlay, view }: { overlay: Overlay; view: View })
     () => [...view.info.home.players, ...view.info.away.players].find((p) => p.playerId === overlay.playerId),
     [view.info, overlay.playerId],
   )
-  const team = teamOf(overlay, view.info)
-  const ours = view.mode === 'club' && view.club ? team?.teamId === view.club.teamId : undefined
+  const ours = isOurs(overlay, view)
   const review = reviewOf(overlay)
   const insight = overlay.variants.insight
 
@@ -68,7 +67,7 @@ export function Insight({ text }: { text: string }) {
 }
 
 /** How this overlay was made: each agent and code check, in order. */
-function Trace({ steps }: { steps: AgentStep[] }) {
+export function Trace({ steps }: { steps: AgentStep[] }) {
   return (
     <ol className="trace" aria-label="How this was made">
       {steps.map((s, i) => (

@@ -62,6 +62,17 @@ export type Overlay = {
   trace?: AgentStep[]
 }
 
+/** The full-time report: one report per audience, every number from the stats engine. */
+export type MatchRecap = {
+  matchId: string
+  headline: string
+  variants: Record<string, string>
+  playerOfTheMatch?: string
+  metrics: Record<string, number>
+  evidence: string[]
+  trace?: AgentStep[]
+}
+
 /** One step in producing an overlay: an agent or a code check. */
 export type AgentStep = { agent: string; model: string; outcome: string; durationMs: number; detail?: string }
 
