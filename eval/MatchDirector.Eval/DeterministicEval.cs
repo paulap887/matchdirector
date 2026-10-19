@@ -10,13 +10,13 @@ namespace MatchDirector.Eval;
 public sealed record DeterministicResult(
     int Matches, int Events, int Moments, int MomentsWithValidEvidence, int TemplateNarrations, int TemplatesPassingNumberCheck,
     int Goals, int GoalMoments, double EventsPerSecond, double MeanGoals, double MeanShots, double MeanPassAccuracy,
-    IReadOnlyDictionary<string, double> MomentsPerMatch);
+    IReadOnlyDictionary<string, double> MomentsPerMatch, int Recaps, int RecapsPassingNumberCheck);
 
 public static class DeterministicEval
 {
     public static DeterministicResult Run(int matches)
     {
-        int events = 0, moments = 0, valid = 0, templates = 0, templatesOk = 0, goals = 0, goalMoments = 0;
+        int events = 0, moments = 0, valid = 0, templates = 0, templatesOk = 0, goals = 0, goalMoments = 0, recapsOk = 0;
         double shots = 0, accuracy = 0;
         var byType = new Dictionary<string, int>();
         var analysing = new Stopwatch();
@@ -51,6 +51,14 @@ public static class DeterministicEval
                 }
             }
 
+            // Full-time report from the same session logic the director uses.
+            var session = new MatchDirector.Agents.Studio.MatchSession(match.Info);
+            foreach (var e in match.Events)
+                session.Ingest(e);
+            var recapFacts = session.RecapFacts();
+            if (NarrationVerifier.UnsupportedNumbers(MatchDirector.Agents.Recap.TemplateRecap.Write(recapFacts).All, recapFacts.AllowedNumbers()).Count == 0)
+                recapsOk++;
+
             var final = analyzer.Snapshot();
             shots += final.Home.Shots + final.Away.Shots;
             accuracy += (final.Home.PassAccuracy + final.Away.PassAccuracy) / 2;
@@ -60,6 +68,7 @@ public static class DeterministicEval
             matches, events, moments, valid, templates, templatesOk, goals, goalMoments,
             Math.Round(events / analysing.Elapsed.TotalSeconds),
             Math.Round(goals / (double)matches, 2), Math.Round(shots / matches, 1), Math.Round(accuracy / matches, 1),
-            byType.OrderByDescending(t => t.Value).ToDictionary(t => t.Key, t => Math.Round(t.Value / (double)matches, 1)));
+            byType.OrderByDescending(t => t.Value).ToDictionary(t => t.Key, t => Math.Round(t.Value / (double)matches, 1)),
+            matches, recapsOk);
     }
 }

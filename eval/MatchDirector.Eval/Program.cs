@@ -1,11 +1,8 @@
 using System.Globalization;
 using Azure.AI.OpenAI;
 using Azure.Identity;
-using MatchDirector.Agents.Narration;
 using MatchDirector.Agents.Studio;
 using MatchDirector.Eval;
-using Microsoft.Agents.AI;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging.Abstractions;
 using OpenAI.Chat;
 
@@ -25,24 +22,8 @@ if (options.Endpoint is { } endpoint)
 {
     var client = new AzureOpenAIClient(new Uri(endpoint), new AzureCliCredential());
     ChatClient Chat(string deployment) => client.GetChatClient(deployment);
-    var studio = new StudioTeam(
-        new VerifierCritic(
-            Chat(options.Reasoning).AsAIAgent(new ChatClientAgentOptions
-            {
-                Name = "VerifierCritic",
-                ChatOptions = new Microsoft.Extensions.AI.ChatOptions
-                {
-                    Instructions = VerifierCritic.Instructions,
-                    Reasoning = new ReasoningOptions { Effort = ReasoningEffort.Low }
-                }
-            }),
-            NullLogger<VerifierCritic>.Instance),
-        new TacticalAnalyst(Chat(options.Reasoning), NullLogger<TacticalAnalyst>.Instance),
-        options.FastModel,
-        options.ReasoningModel);
-    var narrator = new AgentNarrator(
-        Chat(options.Fast).AsAIAgent(instructions: AgentNarrator.Instructions, name: "Narrator"),
-        NullLogger<AgentNarrator>.Instance);
+    var studio = StudioFactory.Team(Chat(options.Reasoning), options.FastModel, options.ReasoningModel, NullLoggerFactory.Instance);
+    var narrator = StudioFactory.Narrator(Chat(options.Fast), NullLoggerFactory.Instance);
     pipeline = new StudioPipeline(narrator, studio, NullLogger<StudioPipeline>.Instance);
 
     if (options.LiveMatches > 0)

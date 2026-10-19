@@ -23,6 +23,7 @@ public sealed class Director(StudioPipeline pipeline, OverlayPublisher publisher
 
     private readonly Channel<OnAir> _narration = Channel.CreateBounded<OnAir>(new BoundedChannelOptions(6) { FullMode = BoundedChannelFullMode.DropOldest });
     private readonly Channel<InReview> _reviews = Channel.CreateBounded<InReview>(new BoundedChannelOptions(8) { FullMode = BoundedChannelFullMode.DropOldest });
+    private readonly Channel<Recap.RecapFacts> _recaps = Channel.CreateBounded<Recap.RecapFacts>(new BoundedChannelOptions(2) { FullMode = BoundedChannelFullMode.DropOldest });
     private readonly SemaphoreSlim _gate = new(1, 1); // partitions are read concurrently
     private readonly List<MatchSession> _sessions = [];
 
@@ -58,7 +59,11 @@ public sealed class Director(StudioPipeline pipeline, OverlayPublisher publisher
                 return;
 
             foreach (var (moment, facts, context) in moments)
+            {
                 await _narration.Writer.WriteAsync(new OnAir(session.Info.MatchId, moment, facts, context), ct);
+                if (moment.Type == MomentType.FullTime)
+                    _recaps.Writer.TryWrite(session.RecapFacts());
+            }
 
             if (Stopwatch.GetElapsedTime(session.LastAnnounced) > TimeSpan.FromSeconds(30))
                 await AnnounceAsync(session, ct);
@@ -103,6 +108,17 @@ public sealed class Director(StudioPipeline pipeline, OverlayPublisher publisher
             logger.LogInformation("{Minute}' {Type} reviewed: {Verdict}{Insight}", item.Facts.Minute, item.Moment.Type,
                 reviewed.FirstReview.Pass ? "approved" : $"corrected ({string.Join(" · ", reviewed.FirstReview.Issues)})",
                 reviewed.Insight is null ? "" : $" | insight: {reviewed.Insight.Text}");
+        }
+    }
+
+    /// <summary>Full-time reports: written, checked and published as each match ends. Runs until cancelled.</summary>
+    public async Task RunRecapsAsync(CancellationToken ct)
+    {
+        await foreach (var facts in _recaps.Reader.ReadAllAsync(ct))
+        {
+            var recap = await pipeline.RecapAsync(facts, ct);
+            await publisher.PublishAsync(recap, ct);
+            logger.LogInformation("Recap {MatchId} [{Source}]: {Headline}", recap.MatchId, recap.Variants["source"], recap.Headline);
         }
     }
 

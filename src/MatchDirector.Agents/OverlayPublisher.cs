@@ -12,6 +12,7 @@ public sealed class OverlayPublisher(HttpClient http, ILogger<OverlayPublisher> 
     public Task PublishAsync(MatchInfo info, CancellationToken ct) => PostAsync("api/match-info", info, ct);
     public Task PublishAsync(Overlay overlay, CancellationToken ct) => PostAsync("api/overlays", overlay, ct);
     public Task PublishAsync(MatchSnapshot snapshot, CancellationToken ct) => PostAsync("api/snapshots", snapshot, ct);
+    public Task PublishAsync(MatchRecap recap, CancellationToken ct) => PostAsync("api/recaps", recap, ct);
 
     private async Task PostAsync<T>(string path, T body, CancellationToken ct)
     {

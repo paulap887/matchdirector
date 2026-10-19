@@ -17,8 +17,9 @@ public sealed record Review(bool Pass, IReadOnlyList<string> Issues)
 public sealed class VerifierCritic(AIAgent agent, ILogger<VerifierCritic> logger)
 {
     public const string Instructions = """
-        You are the fact-checker in a live football broadcast studio. You receive FACTS about one moment, computed
-        by code, and the LINES writers produced for different audiences. Numbers have already been checked by code.
+        You are the fact-checker in a live football broadcast studio. You receive FACTS, computed by code, about one
+        moment or about a whole match at full time, and the LINES writers produced for different audiences.
+        Numbers have already been checked by code.
         Flag only real problems:
         - a claim about the wrong team or player, or a player not in the facts;
         - a wrong score story (who leads, who equalised, who is behind);
@@ -30,7 +31,7 @@ public sealed class VerifierCritic(AIAgent agent, ILogger<VerifierCritic> logger
         against both the facts and "analystEvidence" (the exact tool results). Claims found there are supported.
         Do not flag style, tone, harmless paraphrase or a number's rounding.
         Reply with JSON only: {"pass": true|false, "issues": ["<line name>: <problem>"]}. Use line names
-        casual, analyst, homeFan, awayFan or insight.
+        headline, casual, analyst, homeFan, awayFan or insight.
         """;
 
     public async Task<Review> ReviewAsync(MomentFacts facts, Narrated lines, Insight? insight, CancellationToken ct)
@@ -65,6 +66,27 @@ public sealed class VerifierCritic(AIAgent agent, ILogger<VerifierCritic> logger
             logger.LogWarning(ex, "Verifier failed for {MomentId}", facts.Moment.MomentId);
         }
         return Review.Skipped; // the code number check has already run; never block the broadcast on the reviewer
+    }
+
+    /// <summary>Fact-checks a full-time report against the match facts.</summary>
+    public async Task<Review> ReviewRecapAsync(Recap.RecapFacts facts, Recap.RecapLines lines, CancellationToken ct)
+    {
+        var prompt = $$"""
+            {"facts": {{facts.ToJson()}},
+             "lines": {{JsonSerializer.Serialize(new { lines.Headline, lines.Casual, lines.Analyst, lines.HomeFan, lines.AwayFan }, MatchDirectorJson.Options)}}}
+            """;
+        try
+        {
+            var response = await agent.RunAsync(prompt, cancellationToken: ct);
+            if (AgentJson.Parse<Verdict>(response.Text) is { } verdict)
+                return new Review(verdict.Pass && verdict.Issues is not { Count: > 0 }, verdict.Issues ?? []);
+            logger.LogWarning("Verifier returned unusable output for the {MatchId} recap", facts.Info.MatchId);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Verifier failed for the {MatchId} recap", facts.Info.MatchId);
+        }
+        return Review.Skipped;
     }
 
     private sealed record Verdict(bool Pass, List<string>? Issues);

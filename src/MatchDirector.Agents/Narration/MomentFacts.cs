@@ -1,4 +1,3 @@
-using System.Globalization;
 using MatchDirector.Contracts;
 using MatchDirector.StatsEngine;
 
@@ -27,28 +26,15 @@ public sealed record MomentFacts(
             snapshot.Home.Goals, snapshot.Away.Goals, info.Home.Name, info.Away.Name);
     }
 
-    private static readonly string[] Formats = ["0", "0.#", "0.##"];
-
     /// <summary>
     /// Every number a line about this moment may contain, in any rounding a writer might reasonably use.
     /// <paramref name="extra"/> adds numbers returned by code tools (for the analyst's insight).
     /// </summary>
     public IReadOnlySet<double> AllowedNumbers(IEnumerable<double>? extra = null)
     {
-        var numbers = new HashSet<double> { Minute, HomeGoals, AwayGoals };
-        foreach (var value in Moment.Metrics.Values.Concat(extra ?? []))
-        {
-            numbers.Add(value);
-            numbers.Add(Math.Abs(value)); // "-42" is read as "42" by the number matcher
-            foreach (var shown in new[] { value, Math.Abs(value), value * 100 }) // 0.34 xG may be said as 34%
-            {
-                foreach (var format in Formats)
-                    numbers.Add(double.Parse(shown.ToString(format, CultureInfo.InvariantCulture), CultureInfo.InvariantCulture));
-                numbers.Add(Math.Round(shown));
-                numbers.Add(Math.Round(shown, 1));
-                numbers.Add(Math.Round(shown, 2));
-            }
-        }
+        // Minute and score are allowed only as themselves; metrics may be rounded or shown as percentages.
+        var numbers = NumberVariants.Expand(Moment.Metrics.Values.Concat(extra ?? []));
+        numbers.UnionWith([Minute, HomeGoals, AwayGoals]);
         return numbers;
     }
 }

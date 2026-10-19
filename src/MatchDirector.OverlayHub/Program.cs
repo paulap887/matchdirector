@@ -62,6 +62,13 @@ ingest.MapPost("/status", async (StatusReport report, Demand demand, IHubContext
     return Results.Accepted();
 });
 
+ingest.MapPost("/recaps", async (JsonElement recap, BroadcastState state, IHubContext<MatchHub> hub) =>
+{
+    state.Recap = recap;
+    await hub.Clients.All.SendAsync("recap", recap);
+    return Results.Accepted();
+});
+
 ingest.MapPost("/overlays", async (JsonElement overlay, BroadcastState state, IHubContext<MatchHub> hub) =>
 {
     state.Upsert(overlay);

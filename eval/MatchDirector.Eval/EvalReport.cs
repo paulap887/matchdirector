@@ -36,6 +36,8 @@ public sealed class EvalReport(EvalOptions options)
                 failures.Add($"{d.TemplateNarrations - d.TemplatesPassingNumberCheck} template narrations contain uncomputed numbers");
             if (d.GoalMoments != d.Goals)
                 failures.Add($"{d.Goals - d.GoalMoments} goals have no goal moment");
+            if (d.RecapsPassingNumberCheck != d.Recaps)
+                failures.Add($"{d.Recaps - d.RecapsPassingNumberCheck} full-time template recaps contain uncomputed numbers");
         }
         if (RedTeam?.Attacks.FirstOrDefault(a => a.ExpectedCatcher == "code") is { } code && code.CaughtByCode != code.Samples)
             failures.Add($"{code.Samples - code.CaughtByCode} invented statistics passed the number check");
@@ -82,6 +84,7 @@ public sealed class EvalReport(EvalOptions options)
             md.AppendLine($"| Moments with valid evidence | {det.MomentsWithValidEvidence:N0} / {det.Moments:N0} ({Pct(det.MomentsWithValidEvidence, det.Moments)}) |");
             md.AppendLine($"| Goals with a goal moment | {det.GoalMoments} / {det.Goals} ({Pct(det.GoalMoments, det.Goals)}) |");
             md.AppendLine($"| Template narrations passing the number check | {det.TemplatesPassingNumberCheck:N0} / {det.TemplateNarrations:N0} ({Pct(det.TemplatesPassingNumberCheck, det.TemplateNarrations)}) |");
+            md.AppendLine($"| Full-time template recaps passing the number check | {det.RecapsPassingNumberCheck} / {det.Recaps} ({Pct(det.RecapsPassingNumberCheck, det.Recaps)}) |");
             md.AppendLine($"| Stats engine throughput | {det.EventsPerSecond:N0} events/second |");
             md.AppendLine($"| Realism per match | {det.MeanGoals} goals, {det.MeanShots} shots, {det.MeanPassAccuracy}% pass accuracy |");
             md.AppendLine();
@@ -127,6 +130,17 @@ public sealed class EvalReport(EvalOptions options)
             md.AppendLine($"| Tactical insights | {live.InsightsKept} kept of {live.InsightsRequested} requested ({live.InsightsDropped} dropped by checks) |");
             md.AppendLine($"| Latency p50 / p95 | narrator {live.Narrator.P50} / {live.Narrator.P95} ms · analyst {live.Analyst.P50} / {live.Analyst.P95} ms · critic {live.Critic.P50} / {live.Critic.P95} ms |");
             md.AppendLine();
+            if (live.Recaps.Count > 0)
+            {
+                md.AppendLine("Full-time reports:");
+                md.AppendLine();
+                foreach (var report in live.Recaps)
+                {
+                    var checks = string.Join(" → ", report.Trace.Select(t => $"{t.Agent}: {t.Outcome}"));
+                    md.AppendLine($"- **{report.Headline}** ({report.Source}). {report.Casual} _Checks: {checks}._");
+                }
+                md.AppendLine();
+            }
             if (live.SampleIssues.Count > 0)
             {
                 md.AppendLine("Examples of what the critic flagged:");

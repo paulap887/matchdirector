@@ -128,6 +128,67 @@ public sealed class StudioPipeline(INarrator narrator, StudioTeam studio, ILogge
         return new Reviewed(ToOverlay(matchId, moment, narration, insight?.Text, trace), first!, rewritten, usedTemplate, insight, insightDropped);
     }
 
+    /// <summary>
+    /// Full-time report: the recap writer drafts it, code checks every number, the critic checks the meaning.
+    /// Anything that fails a check is replaced by the deterministic template report.
+    /// </summary>
+    public async Task<MatchRecap> RecapAsync(Recap.RecapFacts facts, CancellationToken ct)
+    {
+        using var activity = Activity.StartActivity("write-recap");
+        activity?.SetTag("match.id", facts.Info.MatchId);
+        var trace = new List<AgentStep>();
+        var lines = Recap.TemplateRecap.Write(facts);
+
+        if (studio.RecapWriter is { } writer)
+        {
+            var started = Stopwatch.GetTimestamp();
+            if (await writer.WriteAsync(facts, ct) is { } drafted)
+            {
+                trace.Add(new("Recap writer", studio.ReasoningModel, "wrote headline and 4 reports", Ms(started)));
+                var invented = NarrationVerifier.UnsupportedNumbers(drafted.All, facts.AllowedNumbers());
+                if (invented.Count > 0)
+                {
+                    trace.Add(new("Number check", "code", "rejected; used template", 0, $"unsupported numbers: {string.Join(", ", invented)}"));
+                }
+                else
+                {
+                    trace.Add(new("Number check", "code", "every number traced to computed facts", 0));
+                    var reviewed = Stopwatch.GetTimestamp();
+                    var review = studio.Critic is { } critic ? await critic.ReviewRecapAsync(facts, drafted, ct) : Review.Skipped;
+                    trace.Add(new("Verifier critic", studio.ReasoningModel, review.Pass ? "approved" : $"flagged {review.Issues.Count} issue(s); used template",
+                        Ms(reviewed), review.Pass ? null : string.Join(" · ", review.Issues)));
+                    if (review.Pass)
+                        lines = drafted;
+                }
+            }
+            else
+            {
+                trace.Add(new("Recap writer", studio.ReasoningModel, "no usable report; used template", Ms(started)));
+            }
+        }
+        else
+        {
+            trace.Add(new("Recap writer", "code", "template report (no model configured)", 0));
+        }
+
+        activity?.SetTag("recap.source", lines.Source);
+        return new MatchRecap(
+            facts.Info.MatchId,
+            lines.Headline,
+            new Dictionary<string, string>
+            {
+                ["casual"] = lines.Casual,
+                ["analyst"] = lines.Analyst,
+                ["homeFan"] = lines.HomeFan,
+                ["awayFan"] = lines.AwayFan,
+                ["source"] = lines.Source
+            },
+            facts.Best?.PlayerId,
+            facts.Metrics,
+            facts.Evidence,
+            trace);
+    }
+
     private static bool IsAboutInsight(string issue) => issue.StartsWith("insight", StringComparison.OrdinalIgnoreCase);
 
     private Narrated CheckNumbers(Narrated narration, MomentFacts facts, List<AgentStep> trace)
