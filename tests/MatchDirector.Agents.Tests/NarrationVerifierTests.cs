@@ -31,6 +31,13 @@ public class NarrationVerifierTests
     }
 
     [Fact]
+    public void Minute_and_score_are_not_stretched_into_percentages()
+    {
+        // 2 goals must not make "200%" acceptable, nor minute 64 make "6400".
+        Assert.Equal(["200", "6400"], NarrationVerifier.UnsupportedNumbers(Lines("200% effort, 6400 fans."), Goal));
+    }
+
+    [Fact]
     public void Every_line_is_checked_including_fan_lines()
     {
         var narration = new Narrated("Goal!", "Clinical finish.", "We lead 2-1!", "Down 1-3 now.", "agent");

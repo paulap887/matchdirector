@@ -3,8 +3,6 @@ using Azure.AI.OpenAI;
 using MatchDirector.Agents;
 using MatchDirector.Agents.Narration;
 using MatchDirector.Agents.Studio;
-using Microsoft.Agents.AI;
-using Microsoft.Extensions.AI;
 using OpenAI.Chat;
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -21,9 +19,7 @@ var reasoning = Deployment("reasoning");
 if (fast is not null)
 {
     builder.AddKeyedAzureOpenAIClient("fast");
-    builder.Services.AddSingleton<INarrator>(sp => new AgentNarrator(
-        ChatClient(sp, "fast", fast).AsAIAgent(instructions: AgentNarrator.Instructions, name: "Narrator"),
-        sp.GetRequiredService<ILogger<AgentNarrator>>()));
+    builder.Services.AddSingleton<INarrator>(sp => StudioFactory.Narrator(ChatClient(sp, "fast", fast), sp.GetRequiredService<ILoggerFactory>()));
 }
 else
 {
@@ -33,21 +29,11 @@ else
 if (fast is not null && reasoning is not null)
 {
     builder.AddKeyedAzureOpenAIClient("reasoning");
-    builder.Services.AddSingleton(sp => new StudioTeam(
-        new VerifierCritic(
-            ChatClient(sp, "reasoning", reasoning).AsAIAgent(new ChatClientAgentOptions
-            {
-                Name = "VerifierCritic",
-                ChatOptions = new ChatOptions
-                {
-                    Instructions = VerifierCritic.Instructions,
-                    Reasoning = new ReasoningOptions { Effort = ReasoningEffort.Low }
-                }
-            }),
-            sp.GetRequiredService<ILogger<VerifierCritic>>()),
-        new TacticalAnalyst(ChatClient(sp, "reasoning", reasoning), sp.GetRequiredService<ILogger<TacticalAnalyst>>()),
+    builder.Services.AddSingleton(sp => StudioFactory.Team(
+        ChatClient(sp, "reasoning", reasoning),
         builder.Configuration["Studio:FastModel"] ?? Model("fast"),
-        builder.Configuration["Studio:ReasoningModel"] ?? Model("reasoning")));
+        builder.Configuration["Studio:ReasoningModel"] ?? Model("reasoning"),
+        sp.GetRequiredService<ILoggerFactory>()));
 }
 else
 {
