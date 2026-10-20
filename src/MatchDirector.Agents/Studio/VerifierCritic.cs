@@ -46,7 +46,9 @@ public sealed class VerifierCritic(AIAgent agent, ILogger<VerifierCritic> logger
                 team = facts.Team,
                 opponent = facts.Opponent,
                 player = facts.Player,
+                playerRole = facts.PlayerRole,
                 score = new { home = facts.HomeTeam, homeGoals = facts.HomeGoals, away = facts.AwayTeam, awayGoals = facts.AwayGoals },
+                fans = new { homeFan = facts.FanViewFor(home: true), awayFan = facts.FanViewFor(home: false) },
                 metrics = facts.Moment.Metrics,
                 units = facts.Moment.Metrics.Keys.ToDictionary(k => k, AgentNarrator.Unit)
             },

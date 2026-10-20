@@ -9,7 +9,9 @@ var builder = Host.CreateApplicationBuilder(args);
 
 builder.AddServiceDefaults();
 builder.AddAzureEventHubConsumerClient("agents-group");
-builder.Services.AddOpenTelemetry().WithTracing(t => t.AddSource(StudioPipeline.Activity.Name, "*Microsoft.Agents.AI*"));
+builder.Services.AddOpenTelemetry()
+    .WithTracing(t => t.AddSource(StudioFactory.TelemetrySource, "*Microsoft.Agents.AI*", "*Microsoft.Extensions.AI*"))
+    .WithMetrics(m => m.AddMeter(StudioFactory.TelemetrySource, "*Microsoft.Extensions.AI*"));
 
 // The studio's agents run on two Foundry deployments: "fast" (live narration) and "reasoning" (review and analysis).
 // Without them the director still runs, using deterministic template narration only.
