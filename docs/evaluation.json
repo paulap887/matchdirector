@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-15T12:00:35.054395+00:00",
+  "generated": "2026-10-20T17:30:03.335895+00:00",
   "options": {
     "matches": 50,
     "liveMatches": 2,
@@ -22,7 +22,7 @@
     "templatesPassingNumberCheck": 1901,
     "goals": 144,
     "goalMoments": 144,
-    "eventsPerSecond": 113369,
+    "eventsPerSecond": 261698,
     "meanGoals": 2.88,
     "meanShots": 27.5,
     "meanPassAccuracy": 78.6,
@@ -37,57 +37,114 @@
       "BigChanceMissed": 1.2,
       "HalfTime": 1,
       "FullTime": 1
-    }
+    },
+    "recaps": 50,
+    "recapsPassingNumberCheck": 50
   },
   "live": {
     "matches": 2,
     "moments": 80,
     "agentNarrations": 75,
     "numberCheckRejections": 5,
-    "reviewed": 34,
-    "criticApproved": 23,
+    "reviewed": 33,
+    "criticApproved": 22,
     "criticFlagged": 11,
     "rewritten": 6,
-    "templateAfterReview": 2,
-    "insightsRequested": 22,
-    "insightsKept": 15,
+    "templateAfterReview": 1,
+    "insightsRequested": 21,
+    "insightsKept": 14,
     "insightsDropped": 7,
+    "fanLineIssues": 6,
     "narrator": {
       "count": 80,
-      "p50": 1776,
-      "p95": 2338
+      "p50": 1739,
+      "p95": 2353
     },
     "analyst": {
-      "count": 22,
-      "p50": 6326,
-      "p95": 7708
+      "count": 21,
+      "p50": 5936,
+      "p95": 7723
     },
     "critic": {
-      "count": 40,
-      "p50": 4945,
-      "p95": 8837
+      "count": 39,
+      "p50": 4214,
+      "p95": 10553
     },
     "sampleIssues": [
-      "KeySave: analyst: Misstates who took the shot \u2014 Piotr Halvik is the goalkeeper who made the save, not the shooter.",
-      "MomentumShift: insight: Claims \u0027despite overall momentum -42.5\u0027 imply the momentum is against Redmoor Rovers, but per the metric (positive = home on top) a momentum of -42.5 actually favors the away team, Redmoor Rovers \u2014 so \u0027despite\u0027 is incorrect.",
-      "PassingMove: homeFan: Not written as a supporter of the home club (Kestrel Bay FC). The line speaks in third person about Kestrel Bay rather than from a home-fan perspective (\u0027we/us\u0027 for the home team).",
-      "KeySave: insight: States the score as \u00220\u201330\u0022 which is incorrect \u2014 the facts show 0\u20130 at minute 35.",
-      "KeySave: insight: Says \u0022despite their 63.1% possession\u0022 implying Redmoor lacked control; the facts show Redmoor (the team of Halvik) had 63.1% possession, so the phrasing is misleading/wrong.",
-      "BigChanceMissed: insight: Claims Redmoor was \u0022on top\u0022 by citing \u0022momentum -18.8\u0022 are not supported by the provided evidence. The get_match_stats output shows momentum: -18.8 but does not indicate which team that favors, so stating it as demonstrating Redmoor\u0027s momentum (and that the miss \u0022halts Redmoor\u0027s ... momentum\u0022) is not supported by the facts.",
-      "KeySave: homeFan: written as a supporter praising/crediting Redmoor Rovers\u0027 keeper\u2014homeFan must be a supporter of the home club (Kestrel Bay FC) and should not frame \u0027we/us\u0027 as Redmoor or praise the opponent in that way.",
-      "Goal: insight: Incorrect score formatting/claim \u2014 reads \u0022makes it 1\u201330\u0022 but the facts show the score is 1-0.",
-      "PassingMove: homeFan: Presents the 10-pass move as belonging to the home side by saying \u0022our 10-pass runs\u0022, but the facts show the 10-pass sequence was by Redmoor Rovers (the away team); a homeFan must speak as a supporter of the home club (Kestrel Bay).",
-      "KeySave: homeFan: Attributes the save to keep \u0022us\u0022 (the home side) level \u2014 Piotr Halvik plays for Redmoor Rovers (the away team), so the line wrongly frames him as keeping Kestrel Bay level.",
-      "KeySave: insight: Claims the save \u0022halted Kestrel\u0027s momentum\u0022 which is not supported by the provided evidence. The tools show a match momentum value (50.3) but do not document Kestrel Bay building momentum that was stopped by this save, so the causal claim is unsupported.",
-      "KeySave: homeFan: Suggests the save \u0022keeps Kestrel Bay hopeful\u0022 \u2014 Piotr Halvik is Redmoor Rovers\u0027 goalkeeper and his save preserved Redmoor\u0027s lead, so this line misstates the effect for the home team."
+      "KeySave: insight: Incorrect score phrasing \u2014 \u0022preserving 0-30\u0022 is wrong (should be preserving 0-0).",
+      "PassingMove: homeFan: line contradicts the fan\u0027s mood \u2014 it says both \u0027we are worried\u0027 and \u0027and celebrate\u0027, but facts list mood as \u0027worried\u0027 for the home fan (Kestrel Bay FC).",
+      "BigChanceMissed: insight: Incorrect score reported \u2014 text says \u00220\u201330 game\u0022 but the facts show a 0\u20130 score.",
+      "KeySave: homeFan: The line is written as if the home fan\u0027s team \u0022hasn\u0027t conceded\u0022 (\u0022still no goals against us\u0022), which misrepresents the facts. The home fan is from Kestrel Bay FC (the attacking/home team in this moment) \u2014 they would more naturally refer to \u0022no goal for us\u0022; as written it implies the home fan supports the team that Halvik (Redmoor Rovers) plays for, which contradicts the facts.",
+      "KeySave: awayFan: Claims Redmoor Rovers are \u0022ahead at 1-0\u0022 \u2014 facts show Redmoor (away) have 0 and Kestrel Bay (home) lead 1-0, so the away fan cannot say \u0022keeping us ahead\u0022.",
+      "PassingMove: homeFan: Incorrectly says the move was \u0022for a goal\u0022 \u2014 the facts describe a passing move but do not state it resulted in a goal.",
+      "MomentumShift: insight: Claims that momentum \u221241.4 \u0022still favours Kestrel\u0022 contradict the metric meaning (momentum is -100..100, positive = home); -41.4 indicates Redmoor Rovers hold the momentum, not Kestrel.",
+      "HalfTime: insight: Claims Redmoor Rovers are \u0022forcing turnovers\u0022 are not supported by the provided facts/evidence (no turnover/turnover-forcing metric is given).",
+      "KeySave: homeFan: Claims Halvik is \u0022our keeper\u0022 for the home supporters \u2014 Piotr Halvik plays for Redmoor Rovers (the away team), so the home fan cannot refer to him as their keeper.",
+      "KeySave: insight: Says the save \u0022halted Kestrel\u0027s momentum (match momentum 50.3)\u0022 \u2014 the provided momentum value is a match-level number (50.3) and there is no evidence that it specifically represented or was \u0022halted\u0022 for Kestrel Bay FC; the causal claim about halting Kestrel\u0027s momentum is not supported by the facts.",
+      "Goal: insight: Claims the goal \u0027ends Kestrel Bay\u0027s 56.5% possession edge\u0027 \u2014 the facts show the possession numbers (56.5% v 43.5%) but do not show that the goal \u0027ended\u0027 that edge or changed possession figures; that causal/temporal claim is not supported by the provided evidence.",
+      "PassingMove: awayFan: Claims the 10-pass move led to a 2-1 lead \u2014 the facts do not state this move caused the score to become 2-1."
     ],
     "sampleInsights": [
-      "KeySave (2\u0027): Halvik\u2019s save denied a 0.156 expected-goals chance from 14.3 metres (28.7\u00B0), keeping it 0-0 and sustaining Kestrel Bay\u2019s 60.1% possession and \u002B55.2 momentum early \u2014 prevents an early lead and preserves pressure.",
-      "HalfTime (47\u0027): Kestrel Bay lead 1-0 despite 39.1% possession vs Redmoor\u2019s 60.9% and similar xG (1.26 vs 1.19). Okonkwe\u2019s 45\u0027 finish (xG 0.254) flips state while momentum is -17.2 favoring Redmoor.",
-      "KeySave (63\u0027): Halvik\u2019s 63\u0027 save denied a 0.181 xG chance (13.1 m, 31.1\u00B0), keeping score 1\u20130; with Redmoor 57.8% possession versus Kestrel\u2019s 129 pressures and momentum \u002B42.4, Kestrel maintain control and game momentum.",
-      "MomentumShift (72\u0027): At 72\u0027, Redmoor\u0027s momentum (-41.9) shows sustained pressure after Kestrel\u0027s 70\u0027 goal: Redmoor have 56.5% possession, 369 passes and 86 progressive passes \u2014 they\u0027re controlling play and forcing a push to chase a 2-0 deficit.",
-      "BigChanceMissed (72\u0027): Corvel\u2019s 0.58 xG miss at 72\u0027 leaves Redmoor trailing 2-0, squandering their best chance to cut the deficit; despite 56.8% possession and Corvel\u2019s 11 shots (xG 1.63), momentum remains -40.3 for Kestrel.",
-      "Goal (8\u0027): 8\u0027 Corvel goal (xG 0.143, 15 m, 27\u00B0) makes it 0\u20131 from a 13s, 3-pass move. Kestrel still have 54.7% possession, but momentum is -42.3, shifting control and momentum to Redmoor despite less possession."
+      "MomentumShift (24\u0027): At 24\u0027, Redmoor\u2019s momentum (\u221242.5) shows they\u2019ve taken control: 62.8% possession, 38 progressive passes (Kestrel 24) and a 23\u0027 high regain 17 m from goal \u2014 shifting control and raising chance quality in a 0\u20130 game.",
+      "KeySave (35\u0027): Halvik\u2019s save denied a 0.196 xG chance from 9.8 m at 24\u00B0 (19.8 m/s), halting Kestrel\u2019s momentum (\u002B25.3) and keeping the 0\u20130 game despite Kestrel\u2019s 0.85 xG overall.",
+      "Goal (45\u0027): Okonkwe\u0027s 45\u0027 goal (xG 0.254, 9 m, 44.1\u00B0) gives Kestrel a 1-0 lead despite 38.2% possession; equal shots (8) and momentum \u002B11.8 now reward clinical counterplay from a 2-pass, 15s move.",
+      "HalfTime (47\u0027): Kestrel lead 1-0 despite Redmoor\u2019s 60.9% possession and 80.8% pass accuracy; xG is level (1.26 vs 1.19). Kestrel\u2019s intense pressing (100 vs 66 pressures) and a clinical finish (goal xG 0.254) turned control into a lead.",
+      "KeySave (63\u0027): Halvik\u0027s minute-63 save denied a 0.181 xG close-range (13.1 m, 31.1\u00B0) chance, preserving Kestrel Bay\u0027s 1\u20130 lead; it halts Redmoor\u0027s surge despite their 57.8% possession and preserves home momentum 42.4.",
+      "Goal (70\u0027): Okonkwe\u2019s finish (xG 0.107) makes it 2\u20130, rewards an 8-pass, 32-second move from 15.2 m; shifts momentum (31.6) and highlights Kestrel\u2019s effective pressing (146 pressures) despite only 43.1% possession."
+    ],
+    "recaps": [
+      {
+        "matchId": "md-1000",
+        "headline": "Okonkwe double seals Kestrel Bay win",
+        "source": "agent",
+        "trace": [
+          {
+            "agent": "Recap writer",
+            "model": "gpt-5-mini",
+            "outcome": "wrote headline and 4 reports",
+            "durationMs": 6453
+          },
+          {
+            "agent": "Number check",
+            "model": "code",
+            "outcome": "every number traced to computed facts",
+            "durationMs": 0
+          },
+          {
+            "agent": "Verifier critic",
+            "model": "gpt-5-mini",
+            "outcome": "approved",
+            "durationMs": 4009
+          }
+        ],
+        "casual": "Dario Okonkwe scored both goals as Kestrel Bay FC beat Redmoor Rovers 2-0. Okonkwe was named player of the match. The win came despite Kestrel Bay having less possession."
+      },
+      {
+        "matchId": "md-1001",
+        "headline": "Corvel nets four as Rovers rout Kestrel Bay",
+        "source": "agent",
+        "trace": [
+          {
+            "agent": "Recap writer",
+            "model": "gpt-5-mini",
+            "outcome": "wrote headline and 4 reports",
+            "durationMs": 5945
+          },
+          {
+            "agent": "Number check",
+            "model": "code",
+            "outcome": "every number traced to computed facts",
+            "durationMs": 0
+          },
+          {
+            "agent": "Verifier critic",
+            "model": "gpt-5-mini",
+            "outcome": "approved",
+            "durationMs": 3544
+          }
+        ],
+        "casual": "Redmoor Rovers beat Kestrel Bay FC 4-1 at Lantern Park. Bastian Corvel scored every Redmoor goal and was named player of the match."
+      }
     ]
   },
   "redTeam": {

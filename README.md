@@ -72,7 +72,7 @@ flowchart LR
 |---|---|
 | **Technological implementation** | .NET 10 + Aspire, Microsoft Agent Framework, Microsoft Foundry, Event Hubs, Container Apps, React 19. 132 unit tests and an [evaluation harness](docs/evaluation.md) with a CI quality gate. |
 | **Agentic design and innovation** | A code Director orchestrating four agents across a fast lane and a review lane; a critic-and-rewrite loop with a deterministic backstop; an analyst that looks stats up through tools instead of computing them; a visible agent trace on every overlay. |
-| **Real-world impact** | Deployed on Azure with managed identity only (no keys anywhere), self-healing after restarts, on-demand play so idle cost is about USD 1.6 a day, a budget alert, and seeded matches that replay exactly. |
+| **Real-world impact** | Deployed on Azure with managed identity only (no keys anywhere), self-healing after restarts, Application Insights tracing every agent and model call with token usage, on-demand play so idle cost is about USD 1.6 a day and a watched match about USD 0.05, a budget alert, and seeded matches that replay exactly. |
 | **UX and presentation** | Four genuinely different viewer experiences, "Why am I seeing this?" on every overlay and report, shareable views, mobile-friendly layout. |
 | **Category adherence** | All five required stages, plus suggested features: pass difficulty, ball and shot speed, control vs chaos, synthetic dataset creation and match recaps. |
 
@@ -86,7 +86,9 @@ flowchart LR
 | Fallback narration and full-time reports passing the number check | **100%** |
 | Invented statistics blocked by code (red team) | **100%** |
 | Meaning errors caught by the verifier critic (red team) | **98.2%**, with **0%** false alarms on correct lines |
-| Narrator latency, live models | p50 1.8 s · p95 2.3 s |
+| Full-time reports passing both checks, live models | 2 of 2 written by the AI and approved |
+| Narrator latency, live models | p50 1.7 s · p95 2.4 s |
+| Model cost per watched match (measured in Application Insights) | about USD 0.05 |
 
 The deterministic guarantees run in CI on every push, and the build fails if any of them drops below 100%. The evaluation also found and fixed two bugs in our own fallback text that unit tests had missed.
 
@@ -173,7 +175,7 @@ dotnet run --project src/MatchDirector.Simulator -- export 42 match-42.jsonl
 ## Responsible AI and limitations
 
 - The models only word computed facts; numbers are enforced by code, and meaning by a second model whose red-team recall is 98.2%, not 100%. When the critic flags a line twice, a deterministic template goes on air instead.
-- The fast narrator sometimes writes a fan line from the wrong club's side; the critic catches these, which means club-fan mode falls back to template lines more often than other modes.
+- The fast narrator still overstates or slips on fan lines in roughly 15–18% of reviewed moments (down from about 20% before fan moods and player roles were computed in code). The critic catches these and they are rewritten or replaced by the template.
 - Reviews take 5–15 seconds, so a corrected or annotated overlay can arrive after the original has been shown; the moments feed always shows the reviewed version.
 - All data is synthetic. Real tracking or event data would need a loader into the same `MatchEvent` contract.
 
