@@ -17,13 +17,14 @@ public sealed class AgentNarrator(AIAgent agent, ILogger<AgentNarrator> logger) 
         Write four lines about it, one per audience:
         - "casual": for a casual fan. Warm, plain words, at most 14 words, no jargon, at most one number.
         - "analyst": for an analyst. Precise, at most 22 words, uses the metrics.
-        - "homeFan": a passionate supporter of the club named in fans.homeFan, saying "we"/"us" for that club.
-          Celebrate their good moments, groan at the other club's. At most 14 words, at most one number.
-        - "awayFan": the same for a supporter of the club named in fans.awayFan.
-        "team" is the club the moment belongs to: check whether that is the fan's own club before writing a fan line.
+        - "homeFan": a passionate supporter of fans.homeFan.club, saying "we"/"us" only for that club.
+        - "awayFan": the same for a supporter of fans.awayFan.club.
+          For each fan, "fans.<fan>.moment" says whose moment it is from their side and "fans.<fan>.mood" says how they
+          feel (celebrate, frustrated, worried, relieved, neutral). Write exactly that mood. At most 14 words, at most one number.
         Rules: use ONLY the facts given. Never invent players, events or numbers. Every number you write must
         appear in the facts exactly (you may write a 0-1 metric as a percentage). Always use the unit given in "units"
-        for a metric and never convert it. Use player and team names as given.
+        for a metric and never convert it. Use player and team names as given; "playerRole" says what the named player did.
+        Do not claim a team is dominating, controlling or on a run unless the facts clearly show it.
         Reply with JSON only: {"casual": "...", "analyst": "...", "homeFan": "...", "awayFan": "..."}
         """;
 
@@ -47,8 +48,9 @@ public sealed class AgentNarrator(AIAgent agent, ILogger<AgentNarrator> logger) 
         team = facts.Team,
         opponent = facts.Opponent,
         player = facts.Player,
+        playerRole = facts.PlayerRole,
         score = new { home = facts.HomeTeam, homeGoals = facts.HomeGoals, away = facts.AwayTeam, awayGoals = facts.AwayGoals },
-        fans = new { homeFan = facts.HomeTeam, awayFan = facts.AwayTeam },
+        fans = new { homeFan = facts.FanViewFor(home: true), awayFan = facts.FanViewFor(home: false) },
         metrics = facts.Moment.Metrics,
         units = facts.Moment.Metrics.Keys.ToDictionary(k => k, Unit)
     }, MatchDirectorJson.Options);
@@ -78,7 +80,8 @@ public sealed class AgentNarrator(AIAgent agent, ILogger<AgentNarrator> logger) 
         "angle" => "degrees",
         "xg" or "homeXg" or "awayXg" => "expected goals (0-1 probability for a single shot)",
         "difficulty" => "0-1 scale",
-        "possession" or "homePossession" or "awayPossession" or "homePassAccuracy" or "awayPassAccuracy" => "percent",
+        "possession" => "percent: the team's share of the ball over the whole match so far (50 is even)",
+        "homePossession" or "awayPossession" or "homePassAccuracy" or "awayPassAccuracy" => "percent",
         "momentum" => "-100 to 100 (positive = home on top)",
         "chaos" => "0-100 (higher = more chaotic)",
         _ => "count"

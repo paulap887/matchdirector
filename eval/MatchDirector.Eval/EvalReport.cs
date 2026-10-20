@@ -127,6 +127,7 @@ public sealed class EvalReport(EvalOptions options)
             md.AppendLine($"| Narrations rejected by the number check | {live.NumberCheckRejections} ({Pct(live.NumberCheckRejections, live.Moments)}) |");
             md.AppendLine($"| Reviewed by the critic | {live.Reviewed}: {live.CriticApproved} approved, {live.CriticFlagged} flagged |");
             md.AppendLine($"| Flagged moments rewritten / template after second review | {live.Rewritten} / {live.TemplateAfterReview} |");
+            md.AppendLine($"| Reviewed moments with a fan-line issue | {live.FanLineIssues} of {live.Reviewed} ({Pct(live.FanLineIssues, live.Reviewed)}) |");
             md.AppendLine($"| Tactical insights | {live.InsightsKept} kept of {live.InsightsRequested} requested ({live.InsightsDropped} dropped by checks) |");
             md.AppendLine($"| Latency p50 / p95 | narrator {live.Narrator.P50} / {live.Narrator.P95} ms · analyst {live.Analyst.P50} / {live.Analyst.P95} ms · critic {live.Critic.P50} / {live.Critic.P95} ms |");
             md.AppendLine();

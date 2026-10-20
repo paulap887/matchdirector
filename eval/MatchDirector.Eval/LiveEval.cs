@@ -7,7 +7,7 @@ namespace MatchDirector.Eval;
 /// <summary>The real studio pipeline on live models, one moment at a time (nothing is dropped, unlike the live queues).</summary>
 public sealed record LiveResult(
     int Matches, int Moments, int AgentNarrations, int NumberCheckRejections, int Reviewed, int CriticApproved, int CriticFlagged,
-    int Rewritten, int TemplateAfterReview, int InsightsRequested, int InsightsKept, int InsightsDropped,
+    int Rewritten, int TemplateAfterReview, int InsightsRequested, int InsightsKept, int InsightsDropped, int FanLineIssues,
     Latency Narrator, Latency Analyst, Latency Critic, IReadOnlyList<string> SampleIssues, IReadOnlyList<string> SampleInsights,
     IReadOnlyList<RecapOutcome> Recaps);
 
@@ -29,7 +29,7 @@ public static class LiveEval
     public static async Task<LiveResult> RunAsync(StudioPipeline pipeline, EvalOptions options)
     {
         int moments = 0, agent = 0, rejected = 0, reviewed = 0, approved = 0, flagged = 0, rewritten = 0, template = 0;
-        int insightsRequested = 0, insightsKept = 0, insightsDropped = 0;
+        int insightsRequested = 0, insightsKept = 0, insightsDropped = 0, fanIssues = 0;
         var narrator = new List<int>();
         var analyst = new List<int>();
         var critic = new List<int>();
@@ -71,6 +71,8 @@ public static class LiveEval
                     if (Step(result.Overlay, "Tactical analyst") is { } a) analyst.Add(a.DurationMs);
                     critic.AddRange(result.Overlay.Trace!.Where(s => s.Agent.StartsWith("Verifier")).Select(s => s.DurationMs));
                     issues.AddRange(result.FirstReview.Issues.Select(x => $"{moment.Type}: {x}"));
+                    if (result.FirstReview.Issues.Any(x => x.StartsWith("homeFan", StringComparison.OrdinalIgnoreCase) || x.StartsWith("awayFan", StringComparison.OrdinalIgnoreCase)))
+                        fanIssues++;
                     if (result.Insight is { } insight)
                         insights.Add($"{moment.Type} ({facts.Minute}'): {insight.Text}");
                     Console.Write(result.FirstReview.Pass ? "✓" : "✎");
@@ -83,7 +85,7 @@ public static class LiveEval
         }
 
         return new LiveResult(options.LiveMatches, moments, agent, rejected, reviewed, approved, flagged, rewritten, template,
-            insightsRequested, insightsKept, insightsDropped, Latency.Of(narrator), Latency.Of(analyst), Latency.Of(critic),
+            insightsRequested, insightsKept, insightsDropped, fanIssues, Latency.Of(narrator), Latency.Of(analyst), Latency.Of(critic),
             issues.Take(12).ToList(), insights.Take(6).ToList(), recaps);
     }
 
