@@ -24,6 +24,9 @@ var reasoningModel = foundry.AddDeployment("reasoning", FoundryModel.OpenAI.Gpt5
 var fastModel = foundry.AddDeployment("fast", "gpt-4.1-mini", "2025-04-14", "OpenAI")
     .WithProperties(d => d.SkuCapacity = 50);
 
+// Application Insights for every service's traces, metrics and logs, including agent and model-call spans.
+var insights = builder.AddAzureApplicationInsights("insights");
+
 // Cost guardrail: monthly budget on the resource group with email alerts.
 builder.AddBicepTemplate("budget", "../../infra/budget.bicep")
     .WithParameter("contactEmail", builder.AddParameter("budgetEmail"))
@@ -34,12 +37,14 @@ var ingestKey = builder.AddParameter("overlayIngestKey", new GenerateParameterDe
 
 // One replica each: the hub keeps viewer state in memory and the director keeps one analyzer per match.
 var overlayHub = builder.AddProject<Projects.MatchDirector_OverlayHub>("overlayhub")
+    .WithReference(insights)
     .WithEnvironment("Overlay__IngestKey", ingestKey)
     .WithExternalHttpEndpoints()
     .WithComputeEnvironment(aca)
     .PublishAsAzureContainerApp((_, app) => SingleSmallReplica(app));
 
 builder.AddProject<Projects.MatchDirector_Simulator>("simulator")
+    .WithReference(insights)
     .WithReference(matchEvents)
     .WithReference(overlayHub)                              // matches play on demand, asked of the hub
     .WithEnvironment("Overlay__IngestKey", ingestKey)
@@ -48,6 +53,7 @@ builder.AddProject<Projects.MatchDirector_Simulator>("simulator")
     .PublishAsAzureContainerApp((_, app) => SingleSmallReplica(app));
 
 builder.AddProject<Projects.MatchDirector_Agents>("agents")
+    .WithReference(insights)
     .WithReference(agentsGroup)
     .WithReference(foundryProject)
     .WithReference(reasoningModel)

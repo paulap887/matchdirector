@@ -82,7 +82,7 @@ public sealed class TacticalAnalyst(ChatClient chatClient, ILogger<TacticalAnaly
                 "get_player_stats")
         ];
 
-        var agent = chatClient.AsAIAgent(new ChatClientAgentOptions
+        var agent = StudioFactory.Instrument(chatClient.AsAIAgent(new ChatClientAgentOptions
         {
             Name = "TacticalAnalyst",
             ChatOptions = new ChatOptions
@@ -91,7 +91,7 @@ public sealed class TacticalAnalyst(ChatClient chatClient, ILogger<TacticalAnaly
                 Tools = tools,
                 Reasoning = new ReasoningOptions { Effort = ReasoningEffort.Low }
             }
-        });
+        }, clientFactory: StudioFactory.TraceModelCalls));
 
         var prompt = JsonSerializer.Serialize(new
         {
