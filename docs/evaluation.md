@@ -1,6 +1,6 @@
 # MatchDirector evaluation
 
-Generated 2026-10-15 12:00 UTC by `eval/MatchDirector.Eval`. All matches are synthetic and seeded, so the deterministic results reproduce exactly; model results vary slightly between runs.
+Generated 2026-10-20 17:30 UTC by `eval/MatchDirector.Eval`. All matches are synthetic and seeded, so the deterministic results reproduce exactly; model results vary slightly between runs.
 
 ## Headlines
 
@@ -8,7 +8,7 @@ Generated 2026-10-15 12:00 UTC by `eval/MatchDirector.Eval`. All matches are syn
 - **100% of fallback narrations pass the number check**, so the safe path never states an uncomputed number.
 - **100% of invented statistics are blocked by code** before anything reaches the screen.
 - **The verifier critic catches 98.2% of meaning errors** (wrong team, swapped fan lines, wrong score story, invented history) with **0% false alarms** on correct lines.
-- **Live studio:** the critic reviewed 34 moments, approved 23 and flagged 11. Flagged lines were rewritten and rechecked (6 rewritten, 2 replaced by the template); flagged insights were dropped. Narrator latency p50 1776 ms, p95 2338 ms.
+- **Live studio:** the critic reviewed 33 moments, approved 22 and flagged 11. Flagged lines were rewritten and rechecked (6 rewritten, 1 replaced by the template); flagged insights were dropped. Narrator latency p50 1739 ms, p95 2353 ms.
 
 ## Deterministic checks (no model)
 
@@ -18,7 +18,8 @@ Generated 2026-10-15 12:00 UTC by `eval/MatchDirector.Eval`. All matches are syn
 | Moments with valid evidence | 1,901 / 1,901 (100%) |
 | Goals with a goal moment | 144 / 144 (100%) |
 | Template narrations passing the number check | 1,901 / 1,901 (100%) |
-| Stats engine throughput | 113,369 events/second |
+| Full-time template recaps passing the number check | 50 / 50 (100%) |
+| Stats engine throughput | 261,698 events/second |
 | Realism per match | 2.88 goals, 27.5 shots, 78.6% pass accuracy |
 
 Moments per match: HighRegain 11.1, PassingMove 8.4, DifficultPass 5.4, KeySave 2.9, Goal 2.9, MomentumShift 2.6, TempoShift 1.4, BigChanceMissed 1.2, HalfTime 1, FullTime 1.
@@ -43,34 +44,40 @@ False alarms: the critic flagged 0 of 15 correct narrations (0%).
 |---|---|
 | Moments narrated | 80 over 2 matches (75 by the agent) |
 | Narrations rejected by the number check | 5 (6.3%) |
-| Reviewed by the critic | 34: 23 approved, 11 flagged |
-| Flagged moments rewritten / template after second review | 6 / 2 |
-| Tactical insights | 15 kept of 22 requested (7 dropped by checks) |
-| Latency p50 / p95 | narrator 1776 / 2338 ms · analyst 6326 / 7708 ms · critic 4945 / 8837 ms |
+| Reviewed by the critic | 33: 22 approved, 11 flagged |
+| Flagged moments rewritten / template after second review | 6 / 1 |
+| Reviewed moments with a fan-line issue | 6 of 33 (18.2%) |
+| Tactical insights | 14 kept of 21 requested (7 dropped by checks) |
+| Latency p50 / p95 | narrator 1739 / 2353 ms · analyst 5936 / 7723 ms · critic 4214 / 10553 ms |
+
+Full-time reports:
+
+- **Okonkwe double seals Kestrel Bay win** (agent). Dario Okonkwe scored both goals as Kestrel Bay FC beat Redmoor Rovers 2-0. Okonkwe was named player of the match. The win came despite Kestrel Bay having less possession. _Checks: Recap writer: wrote headline and 4 reports → Number check: every number traced to computed facts → Verifier critic: approved._
+- **Corvel nets four as Rovers rout Kestrel Bay** (agent). Redmoor Rovers beat Kestrel Bay FC 4-1 at Lantern Park. Bastian Corvel scored every Redmoor goal and was named player of the match. _Checks: Recap writer: wrote headline and 4 reports → Number check: every number traced to computed facts → Verifier critic: approved._
 
 Examples of what the critic flagged:
 
-- KeySave: analyst: Misstates who took the shot — Piotr Halvik is the goalkeeper who made the save, not the shooter.
-- MomentumShift: insight: Claims 'despite overall momentum -42.5' imply the momentum is against Redmoor Rovers, but per the metric (positive = home on top) a momentum of -42.5 actually favors the away team, Redmoor Rovers — so 'despite' is incorrect.
-- PassingMove: homeFan: Not written as a supporter of the home club (Kestrel Bay FC). The line speaks in third person about Kestrel Bay rather than from a home-fan perspective ('we/us' for the home team).
-- KeySave: insight: States the score as "0–30" which is incorrect — the facts show 0–0 at minute 35.
-- KeySave: insight: Says "despite their 63.1% possession" implying Redmoor lacked control; the facts show Redmoor (the team of Halvik) had 63.1% possession, so the phrasing is misleading/wrong.
-- BigChanceMissed: insight: Claims Redmoor was "on top" by citing "momentum -18.8" are not supported by the provided evidence. The get_match_stats output shows momentum: -18.8 but does not indicate which team that favors, so stating it as demonstrating Redmoor's momentum (and that the miss "halts Redmoor's ... momentum") is not supported by the facts.
-- KeySave: homeFan: written as a supporter praising/crediting Redmoor Rovers' keeper—homeFan must be a supporter of the home club (Kestrel Bay FC) and should not frame 'we/us' as Redmoor or praise the opponent in that way.
-- Goal: insight: Incorrect score formatting/claim — reads "makes it 1–30" but the facts show the score is 1-0.
-- PassingMove: homeFan: Presents the 10-pass move as belonging to the home side by saying "our 10-pass runs", but the facts show the 10-pass sequence was by Redmoor Rovers (the away team); a homeFan must speak as a supporter of the home club (Kestrel Bay).
-- KeySave: homeFan: Attributes the save to keep "us" (the home side) level — Piotr Halvik plays for Redmoor Rovers (the away team), so the line wrongly frames him as keeping Kestrel Bay level.
-- KeySave: insight: Claims the save "halted Kestrel's momentum" which is not supported by the provided evidence. The tools show a match momentum value (50.3) but do not document Kestrel Bay building momentum that was stopped by this save, so the causal claim is unsupported.
-- KeySave: homeFan: Suggests the save "keeps Kestrel Bay hopeful" — Piotr Halvik is Redmoor Rovers' goalkeeper and his save preserved Redmoor's lead, so this line misstates the effect for the home team.
+- KeySave: insight: Incorrect score phrasing — "preserving 0-30" is wrong (should be preserving 0-0).
+- PassingMove: homeFan: line contradicts the fan's mood — it says both 'we are worried' and 'and celebrate', but facts list mood as 'worried' for the home fan (Kestrel Bay FC).
+- BigChanceMissed: insight: Incorrect score reported — text says "0–30 game" but the facts show a 0–0 score.
+- KeySave: homeFan: The line is written as if the home fan's team "hasn't conceded" ("still no goals against us"), which misrepresents the facts. The home fan is from Kestrel Bay FC (the attacking/home team in this moment) — they would more naturally refer to "no goal for us"; as written it implies the home fan supports the team that Halvik (Redmoor Rovers) plays for, which contradicts the facts.
+- KeySave: awayFan: Claims Redmoor Rovers are "ahead at 1-0" — facts show Redmoor (away) have 0 and Kestrel Bay (home) lead 1-0, so the away fan cannot say "keeping us ahead".
+- PassingMove: homeFan: Incorrectly says the move was "for a goal" — the facts describe a passing move but do not state it resulted in a goal.
+- MomentumShift: insight: Claims that momentum −41.4 "still favours Kestrel" contradict the metric meaning (momentum is -100..100, positive = home); -41.4 indicates Redmoor Rovers hold the momentum, not Kestrel.
+- HalfTime: insight: Claims Redmoor Rovers are "forcing turnovers" are not supported by the provided facts/evidence (no turnover/turnover-forcing metric is given).
+- KeySave: homeFan: Claims Halvik is "our keeper" for the home supporters — Piotr Halvik plays for Redmoor Rovers (the away team), so the home fan cannot refer to him as their keeper.
+- KeySave: insight: Says the save "halted Kestrel's momentum (match momentum 50.3)" — the provided momentum value is a match-level number (50.3) and there is no evidence that it specifically represented or was "halted" for Kestrel Bay FC; the causal claim about halting Kestrel's momentum is not supported by the facts.
+- Goal: insight: Claims the goal 'ends Kestrel Bay's 56.5% possession edge' — the facts show the possession numbers (56.5% v 43.5%) but do not show that the goal 'ended' that edge or changed possession figures; that causal/temporal claim is not supported by the provided evidence.
+- PassingMove: awayFan: Claims the 10-pass move led to a 2-1 lead — the facts do not state this move caused the score to become 2-1.
 
 Examples of tactical insights that passed both checks:
 
-- KeySave (2'): Halvik’s save denied a 0.156 expected-goals chance from 14.3 metres (28.7°), keeping it 0-0 and sustaining Kestrel Bay’s 60.1% possession and +55.2 momentum early — prevents an early lead and preserves pressure.
-- HalfTime (47'): Kestrel Bay lead 1-0 despite 39.1% possession vs Redmoor’s 60.9% and similar xG (1.26 vs 1.19). Okonkwe’s 45' finish (xG 0.254) flips state while momentum is -17.2 favoring Redmoor.
-- KeySave (63'): Halvik’s 63' save denied a 0.181 xG chance (13.1 m, 31.1°), keeping score 1–0; with Redmoor 57.8% possession versus Kestrel’s 129 pressures and momentum +42.4, Kestrel maintain control and game momentum.
-- MomentumShift (72'): At 72', Redmoor's momentum (-41.9) shows sustained pressure after Kestrel's 70' goal: Redmoor have 56.5% possession, 369 passes and 86 progressive passes — they're controlling play and forcing a push to chase a 2-0 deficit.
-- BigChanceMissed (72'): Corvel’s 0.58 xG miss at 72' leaves Redmoor trailing 2-0, squandering their best chance to cut the deficit; despite 56.8% possession and Corvel’s 11 shots (xG 1.63), momentum remains -40.3 for Kestrel.
-- Goal (8'): 8' Corvel goal (xG 0.143, 15 m, 27°) makes it 0–1 from a 13s, 3-pass move. Kestrel still have 54.7% possession, but momentum is -42.3, shifting control and momentum to Redmoor despite less possession.
+- MomentumShift (24'): At 24', Redmoor’s momentum (−42.5) shows they’ve taken control: 62.8% possession, 38 progressive passes (Kestrel 24) and a 23' high regain 17 m from goal — shifting control and raising chance quality in a 0–0 game.
+- KeySave (35'): Halvik’s save denied a 0.196 xG chance from 9.8 m at 24° (19.8 m/s), halting Kestrel’s momentum (+25.3) and keeping the 0–0 game despite Kestrel’s 0.85 xG overall.
+- Goal (45'): Okonkwe's 45' goal (xG 0.254, 9 m, 44.1°) gives Kestrel a 1-0 lead despite 38.2% possession; equal shots (8) and momentum +11.8 now reward clinical counterplay from a 2-pass, 15s move.
+- HalfTime (47'): Kestrel lead 1-0 despite Redmoor’s 60.9% possession and 80.8% pass accuracy; xG is level (1.26 vs 1.19). Kestrel’s intense pressing (100 vs 66 pressures) and a clinical finish (goal xG 0.254) turned control into a lead.
+- KeySave (63'): Halvik's minute-63 save denied a 0.181 xG close-range (13.1 m, 31.1°) chance, preserving Kestrel Bay's 1–0 lead; it halts Redmoor's surge despite their 57.8% possession and preserves home momentum 42.4.
+- Goal (70'): Okonkwe’s finish (xG 0.107) makes it 2–0, rewards an 8-pass, 32-second move from 15.2 m; shifts momentum (31.6) and highlights Kestrel’s effective pressing (146 pressures) despite only 43.1% possession.
 
 ## Reproduce
 
