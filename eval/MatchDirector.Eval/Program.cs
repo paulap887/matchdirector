@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using OpenAI.Chat;
 
 // MatchDirector evaluation harness.
-//   dotnet run --project eval/MatchDirector.Eval -- [--matches 50] [--live-matches 2] [--redteam 15] [--out docs/evaluation]
+//   dotnet run --project eval/MatchDirector.Eval -- [--matches 50] [--live-matches 2] [--redteam 15] [--translate 8] [--out docs/evaluation]
 //   Live agent sections need a Foundry endpoint (--endpoint or MATCHDIRECTOR_FOUNDRY_ENDPOINT) and an Azure CLI login.
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture; // stable number formatting in the report
 CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
@@ -22,7 +22,7 @@ if (options.Endpoint is { } endpoint)
 {
     var client = new AzureOpenAIClient(new Uri(endpoint), new AzureCliCredential());
     ChatClient Chat(string deployment) => client.GetChatClient(deployment);
-    var studio = StudioFactory.Team(Chat(options.Reasoning), options.FastModel, options.ReasoningModel, NullLoggerFactory.Instance);
+    var studio = StudioFactory.Team(Chat(options.Fast), Chat(options.Reasoning), options.FastModel, options.ReasoningModel, NullLoggerFactory.Instance);
     var narrator = StudioFactory.Narrator(Chat(options.Fast), NullLoggerFactory.Instance);
     pipeline = new StudioPipeline(narrator, studio, NullLogger<StudioPipeline>.Instance);
 
@@ -30,6 +30,12 @@ if (options.Endpoint is { } endpoint)
     {
         Console.WriteLine($"Live studio over {options.LiveMatches} match(es) (up to {options.MaxMoments} moments each)...");
         report.Live = await LiveEval.RunAsync(pipeline, options);
+    }
+
+    if (options.Translate > 0)
+    {
+        Console.WriteLine($"Translation: {options.Translate} moments and a full-time report x {MatchDirector.Agents.Translation.Languages.Supported.Count} languages...");
+        report.Translation = await TranslationEval.RunAsync(pipeline, options);
     }
 }
 else

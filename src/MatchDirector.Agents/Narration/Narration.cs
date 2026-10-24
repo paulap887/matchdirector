@@ -58,9 +58,10 @@ public sealed class TemplateNarrator : INarrator
         var who = f.Player ?? f.Team;
         var score = $"{f.HomeTeam} {f.HomeGoals}-{f.AwayGoals} {f.AwayTeam}";
 
+        var tally = m.GetValueOrDefault("playerGoals") switch { 2 => " That's a brace!", >= 3 => " Hat-trick!", _ => "" };
         var (casual, analyst) = f.Moment.Type switch
         {
-            MomentType.Goal => ($"GOAL! {who} scores for {f.Team}. {score}.",
+            MomentType.Goal => ($"GOAL! {who} scores for {f.Team}. {score}.{tally}",
                 $"{who} finishes a {Metric("passesInMove")}-pass move from {Metric("distance", "0")} m (xG {Metric("xg")})."),
             MomentType.BigChanceMissed => ($"So close! {who} misses a big chance for {f.Team}.",
                 $"Chance worth {Metric("xg")} xG from {Metric("distance", "0")} m goes begging."),
@@ -72,6 +73,12 @@ public sealed class TemplateNarrator : INarrator
                 $"{Metric("distance", "0")} m pass rated {Metric("difficulty")} difficulty, gaining {Metric("progression", "0")} m."),
             MomentType.HighRegain => ($"{f.Team} win it back high up the pitch!",
                 $"Regain {Metric("distanceToGoal", "0")} m from goal: pressing is paying off."),
+            MomentType.RocketShot => ($"What a strike from {who}!",
+                $"Shot clocked at {Metric("shotSpeed", "0.#")} m/s from {Metric("distance", "0")} m, reaching the {Metric("speedThreshold", "0")} m/s alert threshold."),
+            MomentType.DrivingRun => ($"{who} drives forward at pace!",
+                $"Carry of {Metric("distance", "0")} m at {Metric("speed", "0.#")} m/s, reaching the {Metric("speedThreshold", "0.#")} m/s alert threshold."),
+            MomentType.DistanceMilestone => ($"{who} keeps carrying {f.Team} forward.",
+                $"{who} passes {Metric("metresCarried", "0")} m carried with the ball this match."),
             MomentType.MomentumShift => ($"{f.Team} are taking control of this game.",
                 $"Momentum swings to {f.Team} ({Metric("momentum", "0")})."),
             MomentType.TempoShift => (m.GetValueOrDefault("chaos") >= 50 ? "This has turned end-to-end!" : "The game has settled down.",
@@ -96,6 +103,9 @@ public sealed class TemplateNarrator : INarrator
         return f.Moment.Type switch
         {
             MomentType.Goal => ours ? $"YES! {who} scores! {us}-{them}!" : $"Gutted. {who} scores for {f.Team}. {us}-{them}.",
+            MomentType.RocketShot => ours ? $"What a hit from {who}! Keep shooting!" : $"Phew, {who} nearly broke the net.",
+            MomentType.DrivingRun => ours ? $"Go on {who}, run at them!" : $"{who} is running at us. Somebody close that down!",
+            MomentType.DistanceMilestone => ours ? $"{who} never stops driving us on!" : $"{who} keeps running at us all game.",
             MomentType.BigChanceMissed => ours ? $"Agony! {who} should have scored there." : $"Phew! {f.Team} waste a big chance.",
             MomentType.KeySave => ours ? $"Get in! {who} keeps them out!" : $"Denied by {who}. So close!",
             MomentType.PassingMove => ours ? "Lovely stuff, we're keeping the ball!" : $"{f.Team} have the ball and we can't get it back.",

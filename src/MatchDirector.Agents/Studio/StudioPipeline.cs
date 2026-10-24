@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using MatchDirector.Agents.Narration;
+using MatchDirector.Agents.Translation;
 using MatchDirector.Contracts;
 using MatchDirector.StatsEngine;
 
@@ -187,6 +188,44 @@ public sealed class StudioPipeline(INarrator narrator, StudioTeam studio, ILogge
             facts.Metrics,
             facts.Evidence,
             trace);
+    }
+
+    /// <summary>
+    /// Translation: the translator rewords checked English lines in one language, then code makes sure each line carries
+    /// exactly the same numbers. A line that fails is left out, so viewers see the English line instead.
+    /// </summary>
+    public async Task<Translated> TranslateAsync(Language language, IReadOnlyDictionary<string, string> english, CancellationToken ct)
+    {
+        using var activity = Activity.StartActivity("translate");
+        activity?.SetTag("translation.language", language.Code);
+        var trace = new List<AgentStep>();
+        var kept = new Dictionary<string, string>();
+        if (studio.Translator is not { } translator)
+            return new Translated(language.Code, english, kept, trace);
+
+        var started = Stopwatch.GetTimestamp();
+        var lines = await translator.TranslateAsync(language, english, ct);
+        if (lines is null)
+        {
+            trace.Add(new($"Translator ({language.Code})", studio.FastModel, $"no usable {language.Name}; English shown", Ms(started)));
+            return new Translated(language.Code, english, kept, trace);
+        }
+        trace.Add(new($"Translator ({language.Code})", studio.FastModel, $"translated {lines.Count} lines into {language.Name}", Ms(started)));
+
+        var rejected = new List<string>();
+        foreach (var (key, text) in lines)
+        {
+            var differences = TranslationCheck.Differences(english[key], text);
+            if (differences.Count == 0)
+                kept[key] = text;
+            else
+                rejected.Add($"{key}: {string.Join(", ", differences)}");
+        }
+        trace.Add(new($"Number check ({language.Code})", "code",
+            rejected.Count == 0 ? "same numbers as the checked English" : $"kept {kept.Count} of {lines.Count} lines; English shown for the rest",
+            0, rejected.Count == 0 ? null : string.Join(" · ", rejected)));
+        activity?.SetTag("translation.kept", kept.Count);
+        return new Translated(language.Code, english, kept, trace);
     }
 
     private static bool IsAboutInsight(string issue) => issue.StartsWith("insight", StringComparison.OrdinalIgnoreCase);

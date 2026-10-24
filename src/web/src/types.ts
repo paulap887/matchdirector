@@ -34,6 +34,7 @@ export type PlayerStats = {
   tackles: number
   interceptions: number
   fastestShot?: number
+  topCarrySpeed?: number
 }
 
 export type MatchSnapshot = {
@@ -88,19 +89,6 @@ export function reviewOf(overlay: Overlay): Review {
 export type Mode = 'casual' | 'analyst' | 'club' | 'player'
 
 export type MetricKey = 'possession' | 'xg' | 'shots' | 'passAccuracy' | 'progressivePasses' | 'momentum' | 'chaos'
-
-export const LABELS: Record<string, string> = {
-  Goal: 'Goal',
-  BigChanceMissed: 'Big chance',
-  KeySave: 'Key save',
-  PassingMove: 'Passing move',
-  DifficultPass: 'Killer pass',
-  HighRegain: 'High regain',
-  MomentumShift: 'Momentum',
-  TempoShift: 'Tempo',
-  HalfTime: 'Half-time',
-  FullTime: 'Full-time',
-}
 
 export function clock(timeSpan: string): string {
   const [h, m, s] = timeSpan.split(':')

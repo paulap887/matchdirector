@@ -6,7 +6,7 @@ public sealed record TeamStats(
 
 public sealed record PlayerStats(
     string PlayerId, string TeamId, int Passes, int PassesCompleted, int ProgressivePasses, int Shots, int Goals,
-    double Xg, double DistanceCarried, int Tackles, int Interceptions, double? FastestShot);
+    double Xg, double DistanceCarried, int Tackles, int Interceptions, double? FastestShot, double? TopCarrySpeed = null);
 
 public sealed record MatchSnapshot(
     string MatchId, TimeSpan MatchClock, int Period, TeamStats Home, TeamStats Away,

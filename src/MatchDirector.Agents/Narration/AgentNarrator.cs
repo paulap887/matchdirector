@@ -74,8 +74,10 @@ public sealed class AgentNarrator(AIAgent agent, ILogger<AgentNarrator> logger) 
 
     internal static string Unit(string metric) => metric switch
     {
-        "distance" or "distanceToGoal" or "progression" => "metres",
+        "distance" or "distanceToGoal" or "progression" or "metresCarried" => "metres",
         "speed" or "shotSpeed" => "metres per second",
+        "speedThreshold" => "metres per second: the alert threshold this speed reached",
+        "playerGoals" => "goals by this player in the match, including this one",
         "seconds" or "moveSeconds" => "seconds",
         "angle" => "degrees",
         "xg" or "homeXg" or "awayXg" => "expected goals (0-1 probability for a single shot)",
@@ -88,9 +90,14 @@ public sealed class AgentNarrator(AIAgent agent, ILogger<AgentNarrator> logger) 
     };
 
     /// <summary>What the moment means in plain words, so the model does not have to guess how to read a metric.</summary>
-    internal static string Meaning(MomentFacts facts) => facts.Moment.Type switch
+    public static string Meaning(MomentFacts facts) => facts.Moment.Type switch
     {
-        MomentType.Goal => "the team scored; score already includes this goal",
+        MomentType.Goal => facts.Moment.Metrics.GetValueOrDefault("playerGoals") switch
+        {
+            2 => "the team scored; score already includes this goal; it is the scorer's second goal of the match (a brace)",
+            >= 3 => "the team scored; score already includes this goal; the scorer now has a hat-trick (playerGoals goals)",
+            _ => "the team scored; score already includes this goal"
+        },
         MomentType.BigChanceMissed => "a high-quality chance (xg = probability of scoring) was not scored",
         MomentType.KeySave => "the named goalkeeper saved a dangerous shot against their team",
         MomentType.PassingMove => "the team strung together a long run of completed passes",
@@ -100,6 +107,9 @@ public sealed class AgentNarrator(AIAgent agent, ILogger<AgentNarrator> logger) 
         MomentType.TempoShift => facts.Moment.Metrics.GetValueOrDefault("chaos") >= 50
             ? "the game has become chaotic and end-to-end: many turnovers, short possessions (chaos 0-100)"
             : "the game has calmed down into controlled possession (chaos 0-100)",
+        MomentType.RocketShot => "speed alert: the named player struck a shot at or above the speedThreshold (shotSpeed), but it did not go in",
+        MomentType.DrivingRun => "speed alert: the named player ran with the ball at or above the speedThreshold (speed) over distance metres",
+        MomentType.DistanceMilestone => "distance milestone: the named player has now carried the ball metresCarried metres in the match",
         MomentType.HalfTime => "half-time summary",
         MomentType.FullTime => "full-time summary",
         _ => facts.Moment.Type.ToString()

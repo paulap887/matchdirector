@@ -1,23 +1,26 @@
+import { num, pct, t, type Key } from '../i18n'
 import type { PlayerStats } from '../types'
 import type { View } from '../view'
 
 /** Focus card for one player: their live numbers, computed by the stats engine. */
 export function PlayerCard({ view }: { view: View }) {
-  const { player, snapshot } = view
-  if (!player) return <div className="idle">Pick a player to follow.</div>
+  const { player, snapshot, lang } = view
+  if (!player) return <div className="idle">{t(lang, 'pickPlayer')}</div>
   const s = snapshot?.players.find((p) => p.playerId === player.playerId)
+  const speed = (v?: number) => (v ? `${num(lang, v, 1)} m/s` : '–')
 
-  const stats: [string, string][] = s
+  const stats: [Key, string][] = s
     ? [
-        ['Passes', `${s.passesCompleted}/${s.passes}`],
-        ['Progressive passes', String(s.progressivePasses)],
-        ['Shots', String(s.shots)],
-        ['Goals', String(s.goals)],
-        ['xG', s.xg.toFixed(2)],
-        ['Carried', `${Math.round(s.distanceCarried)} m`],
-        ['Tackles won', String(s.tackles)],
-        ['Interceptions', String(s.interceptions)],
-        ['Fastest shot', s.fastestShot ? `${s.fastestShot} m/s` : '–'],
+        ['stat.passes', `${s.passesCompleted}/${s.passes}`],
+        ['stat.progressive', num(lang, s.progressivePasses)],
+        ['stat.shots', num(lang, s.shots)],
+        ['stat.goals', num(lang, s.goals)],
+        ['stat.xg', num(lang, s.xg, 2)],
+        ['stat.carried', `${num(lang, s.distanceCarried)} m`],
+        ['stat.tackles', num(lang, s.tackles)],
+        ['stat.interceptions', num(lang, s.interceptions)],
+        ['stat.fastestShot', speed(s.fastestShot)],
+        ['stat.topCarry', speed(s.topCarrySpeed)],
       ]
     : []
 
@@ -36,13 +39,13 @@ export function PlayerCard({ view }: { view: View }) {
         <dl>
           {stats.map(([k, v]) => (
             <div key={k}>
-              <dt>{k}</dt>
+              <dt>{t(lang, k)}</dt>
               <dd>{v}</dd>
             </div>
           ))}
         </dl>
       ) : (
-        <p className="empty">No touches yet.</p>
+        <p className="empty">{t(lang, 'noTouches')}</p>
       )}
     </div>
   )
@@ -50,6 +53,7 @@ export function PlayerCard({ view }: { view: View }) {
 
 /** Analyst view: the most involved players so far. */
 export function TopPlayers({ view }: { view: View }) {
+  const { lang } = view
   const players = [...(view.snapshot?.players ?? [])]
     .sort((a, b) => score(b) - score(a))
     .slice(0, 6)
@@ -58,15 +62,15 @@ export function TopPlayers({ view }: { view: View }) {
 
   return (
     <div className="top-players">
-      <h3>Most influential</h3>
+      <h3>{t(lang, 'mostInfluential')}</h3>
       <table>
         <thead>
           <tr>
-            <th>Player</th>
+            <th>{t(lang, 'col.player')}</th>
             <th>xG</th>
-            <th>Prog.</th>
-            <th>Pass %</th>
-            <th>Def.</th>
+            <th>{t(lang, 'col.prog')}</th>
+            <th>{t(lang, 'col.passPct')}</th>
+            <th>{t(lang, 'col.def')}</th>
           </tr>
         </thead>
         <tbody>
@@ -75,9 +79,9 @@ export function TopPlayers({ view }: { view: View }) {
               <td>
                 #{name(p)?.number} {name(p)?.name}
               </td>
-              <td>{p.xg.toFixed(2)}</td>
+              <td>{num(lang, p.xg, 2)}</td>
               <td>{p.progressivePasses}</td>
-              <td>{p.passes ? Math.round((100 * p.passesCompleted) / p.passes) : 0}</td>
+              <td>{pct(lang, p.passes ? (100 * p.passesCompleted) / p.passes : 0)}</td>
               <td>{p.tackles + p.interceptions}</td>
             </tr>
           ))}

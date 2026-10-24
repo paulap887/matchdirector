@@ -20,7 +20,8 @@ public sealed class Worker(EventHubConsumerClient consumer, Director director, I
             consumer.EventHubName, partitions.Length, consumer.ConsumerGroup, catchUp.TotalMinutes);
 
         var readers = partitions.Select(p => ReadPartitionAsync(p, startedAt - catchUp, startedAt, stoppingToken));
-        await Task.WhenAll(readers.Append(director.RunNarrationAsync(stoppingToken)).Append(director.RunReviewsAsync(stoppingToken)).Append(director.RunRecapsAsync(stoppingToken)));
+        await Task.WhenAll(readers.Append(director.RunNarrationAsync(stoppingToken)).Append(director.RunReviewsAsync(stoppingToken)).Append(director.RunRecapsAsync(stoppingToken))
+            .Append(director.RunTranslationsAsync(stoppingToken)));
     }
 
     private async Task ReadPartitionAsync(string partition, DateTimeOffset from, DateTimeOffset liveFrom, CancellationToken ct)

@@ -1,7 +1,7 @@
 namespace MatchDirector.Eval;
 
 public sealed record EvalOptions(
-    int Matches, int LiveMatches, int MaxMoments, int RedTeam, int FirstSeed, string? Endpoint,
+    int Matches, int LiveMatches, int MaxMoments, int RedTeam, int Translate, int FirstSeed, string? Endpoint,
     string Fast, string Reasoning, string FastModel, string ReasoningModel, string Out)
 {
     public static EvalOptions Parse(string[] args)
@@ -14,6 +14,7 @@ public sealed record EvalOptions(
             LiveMatches: Int("live-matches", 2),
             MaxMoments: Int("max-moments", 40),
             RedTeam: Int("redteam", 15),
+            Translate: Int("translate", 8),
             FirstSeed: Int("seed", 1000),
             Endpoint: Arg("endpoint") ?? Environment.GetEnvironmentVariable("MATCHDIRECTOR_FOUNDRY_ENDPOINT"),
             Fast: Arg("fast") ?? "fast",

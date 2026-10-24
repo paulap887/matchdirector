@@ -9,6 +9,7 @@ public sealed class EvalReport(EvalOptions options)
     public DeterministicResult? Deterministic { get; set; }
     public LiveResult? Live { get; set; }
     public RedTeamResult? RedTeam { get; set; }
+    public TranslationResult? Translation { get; set; }
 
     public async Task WriteAsync()
     {
@@ -20,6 +21,7 @@ public sealed class EvalReport(EvalOptions options)
             options = options with { Endpoint = options.Endpoint is null ? null : "(set)" },
             deterministic = Deterministic,
             live = Live,
+            translation = Translation,
             redTeam = RedTeam
         }, new JsonSerializerOptions(MatchDirectorJson.Options) { WriteIndented = true }));
     }
@@ -71,6 +73,10 @@ public sealed class EvalReport(EvalOptions options)
         if (Live is { } l)
         {
             md.AppendLine($"- **Live studio:** the critic reviewed {l.Reviewed} moments, approved {l.CriticApproved} and flagged {l.CriticFlagged}. Flagged lines were rewritten and rechecked ({l.Rewritten} rewritten, {l.TemplateAfterReview} replaced by the template); flagged insights were dropped. Narrator latency p50 {l.Narrator.P50} ms, p95 {l.Narrator.P95} ms.");
+        }
+        if (Translation is { } tr)
+        {
+            md.AppendLine($"- **Translation:** {Pct(tr.Languages.Sum(l => l.Kept), tr.Languages.Sum(l => l.Lines))} of translated lines kept exactly the numbers of the checked English line across {tr.Languages.Count} languages; the rest fall back to English on screen.");
         }
         md.AppendLine();
 
@@ -156,6 +162,35 @@ public sealed class EvalReport(EvalOptions options)
                 md.AppendLine();
                 foreach (var insight in live.SampleInsights)
                     md.AppendLine($"- {insight}");
+                md.AppendLine();
+            }
+        }
+
+        if (Translation is { } translation)
+        {
+            md.AppendLine($"## Translation ({options.FastModel} translator, code number check)");
+            md.AppendLine();
+            md.AppendLine($"Checked English lines from {translation.Moments} moments and one full-time report, translated into each language. A translated line is kept only if it carries exactly the numbers of its English line; otherwise viewers see the English line.");
+            md.AppendLine();
+            md.AppendLine("| Language | Lines kept | Latency p50 / p95 |");
+            md.AppendLine("|---|---|---|");
+            foreach (var language in translation.Languages)
+                md.AppendLine($"| {language.Name} | {language.Kept} / {language.Lines} ({Pct(language.Kept, language.Lines)}) | {language.Latency.P50} / {language.Latency.P95} ms |");
+            md.AppendLine();
+            if (translation.Samples.Count > 0)
+            {
+                md.AppendLine("Examples:");
+                md.AppendLine();
+                foreach (var sample in translation.Samples)
+                    md.AppendLine($"- {sample}");
+                md.AppendLine();
+            }
+            if (translation.Rejections.Count > 0)
+            {
+                md.AppendLine("What the number check caught:");
+                md.AppendLine();
+                foreach (var rejection in translation.Rejections)
+                    md.AppendLine($"- {rejection}");
                 md.AppendLine();
             }
         }

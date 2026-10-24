@@ -9,6 +9,7 @@ namespace MatchDirector.StatsEngine;
 public sealed class MatchAnalyzer
 {
     private const int EvidenceLimit = 10;
+    private const int PassingMoveLength = 12;
 
     private readonly string _matchId;
     private readonly string _homeId;
@@ -86,12 +87,12 @@ public sealed class MatchAnalyzer
                 _momentum.Add(now, e.TeamId, (pass.Progressive ? 0.03 : 0) + (pass.IntoBox ? 0.04 : 0)
                                              + (Pitch.InFinalThird(passEnd) && !Pitch.InFinalThird(start) ? 0.02 : 0), e.EventId);
 
-                if (++_passChain == 10 && Cooled(MomentType.PassingMove, e.TeamId, now))
+                if (++_passChain == PassingMoveLength && Cooled(MomentType.PassingMove, e.TeamId, now))
                 {
-                    var chain = _sequence.Where(s => s.Type == MatchEventType.Pass).TakeLast(10).ToList();
+                    var chain = _sequence.Where(s => s.Type == MatchEventType.Pass).TakeLast(PassingMoveLength).ToList();
                     moments.Add(Create(MomentType.PassingMove, e, 45, new()
                     {
-                        ["passes"] = 10,
+                        ["passes"] = PassingMoveLength,
                         ["players"] = chain.Select(c => c.PlayerId).Distinct().Count(),
                         ["seconds"] = Math.Round((e.MatchClock - chain[0].MatchClock).TotalSeconds),
                         ["possession"] = Possession(e.TeamId)
@@ -113,9 +114,11 @@ public sealed class MatchAnalyzer
                 Track(e);
                 if (e.End is { } carryEnd)
                 {
-                    player!.DistanceCarried += Pitch.Distance(e.Start, carryEnd);
+                    var carried = Pitch.Distance(e.Start, carryEnd);
+                    player!.DistanceCarried += carried;
                     var carryFrame = Frame(e.TeamId, carryEnd);
                     _momentum.Add(now, e.TeamId, Pitch.InFinalThird(carryFrame) && !Pitch.InFinalThird(start) ? 0.01 : 0, e.EventId);
+                    CarryAlerts(e, player, carried, moments);
                 }
                 break;
 
@@ -180,7 +183,7 @@ public sealed class MatchAnalyzer
         _momentum.Value(Seconds(_clock)), _tempo.Value(Seconds(_clock)) ?? 50,
         _players.Values.OrderBy(p => p.PlayerId).Select(p => new PlayerStats(
             p.PlayerId, p.TeamId, p.Passes, p.PassesCompleted, p.ProgressivePasses, p.Shots, p.Goals,
-            Math.Round(p.Xg, 2), Math.Round(p.DistanceCarried, 1), p.Tackles, p.Interceptions, p.FastestShot)).ToList());
+            Math.Round(p.Xg, 2), Math.Round(p.DistanceCarried, 1), p.Tackles, p.Interceptions, p.FastestShot, p.TopCarrySpeed)).ToList());
 
     private void ResolvePendingShot(MatchEvent next, List<Moment> moments)
     {
@@ -196,6 +199,10 @@ public sealed class MatchAnalyzer
             ["angle"] = metrics.Angle,
             ["shotSpeed"] = metrics.Speed ?? 0
         };
+        var rocket = metrics.Speed >= Thresholds.RocketShotSpeed;
+        if (rocket)
+            stats["speedThreshold"] = Thresholds.RocketShotSpeed;
+        var before = moments.Count;
 
         if (next.Type == MatchEventType.Goal)
         {
@@ -205,6 +212,8 @@ public sealed class MatchAnalyzer
             stats["moveSeconds"] = Math.Round((next.MatchClock - build[0].MatchClock).TotalSeconds);
             stats["homeScore"] = Team(_homeId).Goals + (shot.TeamId == _homeId ? 1 : 0);
             stats["awayScore"] = Team(_awayId).Goals + (shot.TeamId == _awayId ? 1 : 0);
+            if (shot.PlayerId is { } scorer)
+                stats["playerGoals"] = Player(scorer, shot.TeamId).Goals + 1; // 2 = a brace, 3 = a hat-trick
             moments.Add(Create(MomentType.Goal, next, 100, stats, build.Select(b => b.EventId).Append(next.EventId)));
         }
         else if (next.Type == MatchEventType.Save)
@@ -217,11 +226,46 @@ public sealed class MatchAnalyzer
         {
             moments.Add(Create(MomentType.BigChanceMissed, shot, 70, stats, [shot.EventId]));
         }
+
+        // A shot over the speed threshold that is not already a moment still gets its own speed alert.
+        if (rocket && moments.Count == before)
+            moments.Add(Create(MomentType.RocketShot, shot, 45, stats, next.Type == MatchEventType.Save ? [shot.EventId, next.EventId] : [shot.EventId]));
+    }
+
+    /// <summary>Speed and distance indicators for the ball carrier, triggered by <see cref="Thresholds"/>.</summary>
+    private void CarryAlerts(MatchEvent carry, PlayerTally player, double carried, List<Moment> moments)
+    {
+        if (carry.Duration is { TotalSeconds: > 0 } duration)
+        {
+            var speed = Math.Round(carried / duration.TotalSeconds, 1);
+            player.TopCarrySpeed = Math.Max(player.TopCarrySpeed ?? 0, speed);
+            if (speed >= Thresholds.DrivingRunSpeed && carried >= Thresholds.DrivingRunMinDistance
+                && Cooled(MomentType.DrivingRun, carry.TeamId, Seconds(carry.MatchClock)))
+            {
+                moments.Add(Create(MomentType.DrivingRun, carry, 40, new()
+                {
+                    ["speed"] = speed,
+                    ["distance"] = Math.Round(carried, 1),
+                    ["speedThreshold"] = Thresholds.DrivingRunSpeed
+                }, [carry.EventId]));
+            }
+        }
+
+        var reached = (int)(player.DistanceCarried / Thresholds.CarryMilestone);
+        if (reached > player.CarryMilestones)
+        {
+            player.CarryMilestones = reached;
+            moments.Add(Create(MomentType.DistanceMilestone, carry, 40, new()
+            {
+                ["metresCarried"] = reached * Thresholds.CarryMilestone,
+                ["distance"] = Math.Round(carried, 1)
+            }, [carry.EventId]));
+        }
     }
 
     private void HighRegain(MatchEvent e, PitchPoint start, List<Moment> moments)
     {
-        if (start.X < 80 || !Cooled(MomentType.HighRegain, e.TeamId, Seconds(e.MatchClock)))
+        if (start.X < 86 || !Cooled(MomentType.HighRegain, e.TeamId, Seconds(e.MatchClock)))
             return;
         var lostBall = _sequence.LastOrDefault(); // the opponent's last action, which this regain ended
         moments.Add(Create(MomentType.HighRegain, e, 35, new() { ["distanceToGoal"] = Math.Round(Pitch.DistanceToGoal(start), 1) },
@@ -379,5 +423,7 @@ public sealed class MatchAnalyzer
         public int Passes, PassesCompleted, ProgressivePasses, Shots, Goals, Tackles, Interceptions;
         public double Xg, DistanceCarried;
         public double? FastestShot;
+        public double? TopCarrySpeed;
+        public int CarryMilestones;
     }
 }

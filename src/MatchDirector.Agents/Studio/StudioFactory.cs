@@ -1,5 +1,6 @@
 using MatchDirector.Agents.Narration;
 using MatchDirector.Agents.Recap;
+using MatchDirector.Agents.Translation;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using OpenAI.Chat;
@@ -19,10 +20,12 @@ public static class StudioFactory
         new(Instrument(fast.AsAIAgent(instructions: AgentNarrator.Instructions, name: "Narrator", clientFactory: TraceModelCalls)),
             logs.CreateLogger<AgentNarrator>());
 
-    public static StudioTeam Team(ChatClient reasoning, string fastModel, string reasoningModel, ILoggerFactory logs) => new(
+    public static StudioTeam Team(ChatClient fast, ChatClient reasoning, string fastModel, string reasoningModel, ILoggerFactory logs) => new(
         new VerifierCritic(Agent(reasoning, "VerifierCritic", VerifierCritic.Instructions), logs.CreateLogger<VerifierCritic>()),
         new TacticalAnalyst(reasoning, logs.CreateLogger<TacticalAnalyst>()),
         new RecapWriter(Agent(reasoning, "RecapWriter", RecapWriter.Instructions), logs.CreateLogger<RecapWriter>()),
+        new Translator(Instrument(fast.AsAIAgent(instructions: Translator.Instructions, name: "Translator", clientFactory: TraceModelCalls)),
+            logs.CreateLogger<Translator>()),
         fastModel,
         reasoningModel);
 

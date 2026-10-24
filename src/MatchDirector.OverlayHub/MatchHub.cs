@@ -3,9 +3,12 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace MatchDirector.OverlayHub;
 
-/// <summary>Viewers connect here; the server pushes matchInfo, snapshot, overlay and status messages.</summary>
-public sealed class MatchHub(Demand demand) : Hub
+/// <summary>Viewers connect here; the server pushes matchInfo, snapshot, overlay, recap and status messages.</summary>
+public sealed class MatchHub(Demand demand, ViewerLanguages languages) : Hub
 {
+    /// <summary>The viewer's language ("en", "fr", ...), so the studio translates into it while they watch.</summary>
+    public void SetLanguage(string language) => languages.Set(Context.ConnectionId, language);
+
     public override Task OnConnectedAsync()
     {
         demand.ViewerJoined();
@@ -15,6 +18,7 @@ public sealed class MatchHub(Demand demand) : Hub
     public override Task OnDisconnectedAsync(Exception? exception)
     {
         demand.ViewerLeft();
+        languages.Remove(Context.ConnectionId);
         return base.OnDisconnectedAsync(exception);
     }
 }

@@ -11,6 +11,7 @@ builder.AddServiceDefaults();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<BroadcastState>();
 builder.Services.AddSingleton<Demand>();
+builder.Services.AddSingleton<ViewerLanguages>();
 
 var app = builder.Build();
 
@@ -55,6 +56,9 @@ ingest.MapPost("/snapshots", async (JsonElement snapshot, BroadcastState state, 
 // The simulator polls for demand and reports whether a match is playing.
 ingest.MapPost("/demand/claim", (Demand demand) => new { claimed = demand.TryClaimKickoff(), viewers = demand.Viewers });
 ingest.MapGet("/demand", (Demand demand) => new { viewers = demand.Viewers });
+
+// The agent service translates only into the languages viewers are watching in.
+ingest.MapGet("/languages", (ViewerLanguages languages) => languages.Watched());
 ingest.MapPost("/status", async (StatusReport report, Demand demand, IHubContext<MatchHub> hub) =>
 {
     demand.Report(report.Status);

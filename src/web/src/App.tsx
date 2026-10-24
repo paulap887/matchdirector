@@ -6,22 +6,22 @@ import { OverlayCard } from './components/OverlayCard'
 import { PlayerCard, TopPlayers } from './components/Players'
 import { RecapCard } from './components/RecapCard'
 import { Scorebug } from './components/Scorebug'
+import { LANGS, t, type Lang } from './i18n'
 import { METRIC_OPTIONS } from './metrics'
 import { usePrefs } from './prefs'
 import type { MatchInfo, MetricKey, Mode, Overlay } from './types'
 import { useMatchFeed } from './useMatchFeed'
 import { buildView, mood, visible, type View } from './view'
 
-const MODES: { key: Mode; label: string }[] = [
-  { key: 'casual', label: 'Casual fan' },
-  { key: 'analyst', label: 'Analyst' },
-  { key: 'club', label: 'Club fan' },
-  { key: 'player', label: 'Player focus' },
-]
+const MODES: Mode[] = ['casual', 'analyst', 'club', 'player']
 
 export default function App() {
-  const { info, snapshot, overlays, connected, status, recap } = useMatchFeed()
   const [prefs, setPrefs] = usePrefs()
+  const { lang } = prefs
+  const { info, snapshot, overlays, connected, status, recap } = useMatchFeed(lang)
+  useEffect(() => {
+    document.documentElement.lang = lang
+  }, [lang])
   const view = info ? buildView(prefs, info, snapshot) : undefined
   const live = useLiveOverlay(view ? overlays.filter((o) => visible(o, view)) : [])
 
@@ -31,21 +31,28 @@ export default function App() {
         <div className="brand">
           Ninety<span>fold</span>
         </div>
-        <nav className="mode" aria-label="Viewer mode">
+        <nav className="mode" aria-label={t(lang, 'viewerMode')}>
           {MODES.map((m) => (
-            <button key={m.key} className={m.key === prefs.mode ? 'active' : ''} onClick={() => setPrefs({ mode: m.key })}>
-              {m.label}
+            <button key={m} className={m === prefs.mode ? 'active' : ''} onClick={() => setPrefs({ mode: m })}>
+              {t(lang, `mode.${m}`)}
             </button>
           ))}
         </nav>
-        <div className={`status ${connected ? 'on' : ''}`}>{connected ? 'Live' : 'Connecting…'}</div>
+        <select className="lang" aria-label={t(lang, 'language')} value={lang} onChange={(e) => setPrefs({ lang: e.target.value as Lang })}>
+          {LANGS.map((l) => (
+            <option key={l.code} value={l.code}>
+              {l.name}
+            </option>
+          ))}
+        </select>
+        <div className={`status ${connected ? 'on' : ''}`}>{t(lang, connected ? 'live' : 'connecting')}</div>
       </header>
 
       {info && <Controls info={info} prefs={prefs} setPrefs={setPrefs} />}
 
-      {connected && status === 'idle' && <KickOff hasPlayed={!!info} />}
+      {connected && status === 'idle' && <KickOff hasPlayed={!!info} lang={lang} />}
 
-      {view ? <Scorebug view={view} /> : <div className="waiting">Waiting for kick-off…</div>}
+      {view ? <Scorebug view={view} /> : <div className="waiting">{t(lang, 'waiting')}</div>}
 
       {view && (
         <main className="grid">
@@ -61,17 +68,18 @@ export default function App() {
         </main>
       )}
 
-      <footer>All clubs, players and match data are fictional. Numbers are computed by code; AI only words them.</footer>
+      <footer>{t(lang, 'footer')}</footer>
     </div>
   )
 }
 
 function Controls({ info, prefs, setPrefs }: { info: MatchInfo; prefs: ReturnType<typeof usePrefs>[0]; setPrefs: ReturnType<typeof usePrefs>[1] }) {
+  const { lang } = prefs
   return (
     <div className="controls">
       {prefs.mode === 'club' && (
-        <div className="clubs" role="group" aria-label="Your club">
-          <span>Your club</span>
+        <div className="clubs" role="group" aria-label={t(lang, 'yourClub')}>
+          <span>{t(lang, 'yourClub')}</span>
           {[info.home, info.away].map((t, i) => (
             <button key={t.teamId} className={`${i === 0 ? 'home' : 'away'} ${prefs.clubId === t.teamId ? 'active' : ''}`} onClick={() => setPrefs({ clubId: t.teamId })}>
               {t.name}
@@ -81,9 +89,9 @@ function Controls({ info, prefs, setPrefs }: { info: MatchInfo; prefs: ReturnTyp
       )}
       {prefs.mode === 'player' && (
         <label>
-          Follow
+          {t(lang, 'follow')}
           <select value={prefs.playerId ?? ''} onChange={(e) => setPrefs({ playerId: e.target.value || undefined })}>
-            <option value="">Choose a player…</option>
+            <option value="">{t(lang, 'choosePlayer')}</option>
             {[info.home, info.away].map((t) => (
               <optgroup key={t.teamId} label={t.name}>
                 {t.players.map((p) => (
@@ -97,12 +105,12 @@ function Controls({ info, prefs, setPrefs }: { info: MatchInfo; prefs: ReturnTyp
         </label>
       )}
       <label>
-        Pin a stat
+        {t(lang, 'pinStat')}
         <select value={prefs.metric ?? ''} onChange={(e) => setPrefs({ metric: (e.target.value || undefined) as MetricKey | undefined })}>
-          <option value="">None</option>
+          <option value="">{t(lang, 'none')}</option>
           {METRIC_OPTIONS.map((m) => (
             <option key={m.key} value={m.key}>
-              {m.label}
+              {t(lang, m.label)}
             </option>
           ))}
         </select>
@@ -115,7 +123,7 @@ function Controls({ info, prefs, setPrefs }: { info: MatchInfo; prefs: ReturnTyp
  * Matches play on demand, so the studio's models only run while someone is watching. A new visitor's connection
  * already asks for a match, so they see it start within seconds; after a match, the button asks for another.
  */
-function KickOff({ hasPlayed }: { hasPlayed: boolean }) {
+function KickOff({ hasPlayed, lang }: { hasPlayed: boolean; lang: Lang }) {
   const [requested, setRequested] = useState(!hasPlayed)
   useEffect(() => {
     if (!requested) return
@@ -131,11 +139,11 @@ function KickOff({ hasPlayed }: { hasPlayed: boolean }) {
   return (
     <div className="kickoff" role="status">
       <div>
-        <strong>{requested ? 'Kicking off…' : hasPlayed ? 'Full time. Fancy another?' : 'No match on right now.'}</strong>
-        <p>Matches play on demand, so the AI studio only runs while someone is watching.</p>
+        <strong>{t(lang, requested ? 'kickingOff' : hasPlayed ? 'fullTimeAnother' : 'noMatch')}</strong>
+        <p>{t(lang, 'onDemand')}</p>
       </div>
       <button onClick={kickOff} disabled={requested}>
-        {requested ? 'Starting…' : 'Kick off a match'}
+        {t(lang, requested ? 'starting' : 'kickOff')}
       </button>
     </div>
   )
@@ -144,10 +152,10 @@ function KickOff({ hasPlayed }: { hasPlayed: boolean }) {
 function Idle({ view }: { view: View }) {
   const text =
     view.mode === 'club' && !view.club
-      ? 'Pick your club above.'
+      ? t(view.lang, 'pickClub')
       : view.mode === 'player' && view.player
-        ? `Waiting for ${view.player.name} to get involved…`
-        : 'Watching the game…'
+        ? t(view.lang, 'waitingFor', { name: view.player.name })
+        : t(view.lang, 'watching')
   return <div className="idle">{text}</div>
 }
 

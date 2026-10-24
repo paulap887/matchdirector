@@ -75,5 +75,36 @@ public class NarrationVerifierTests
         Assert.Contains("1-2", narration.AwayFan);
     }
 
+    [Theory]
+    [InlineData(1, "", "the team scored; score already includes this goal")]
+    [InlineData(2, "That's a brace!", "(a brace)")]
+    [InlineData(3, "Hat-trick!", "hat-trick")]
+    public void A_players_second_and_third_goals_are_called_out(int playerGoals, string casual, string meaning)
+    {
+        var facts = Goal with { Moment = Goal.Moment with { Metrics = new Dictionary<string, double>(Goal.Moment.Metrics) { ["playerGoals"] = playerGoals } } };
+        var narrated = TemplateNarrator.Narrate(facts);
+        Assert.EndsWith(casual, narrated.Casual);
+        Assert.Contains(meaning, AgentNarrator.Meaning(facts));
+        Assert.Empty(NarrationVerifier.UnsupportedNumbers(narrated, facts));
+    }
+
+    [Fact]
+    public void Speed_alert_lines_quote_the_threshold_from_the_facts()
+    {
+        var rocket = Goal with
+        {
+            Moment = Goal.Moment with
+            {
+                Type = MomentType.RocketShot,
+                Metrics = new Dictionary<string, double> { ["xg"] = 0.04, ["distance"] = 29.6, ["shotSpeed"] = 31.7, ["speedThreshold"] = 30 }
+            }
+        };
+        var narrated = TemplateNarrator.Narrate(rocket);
+        Assert.Contains("31.7 m/s", narrated.Analyst);
+        Assert.Contains("30 m/s", narrated.Analyst);
+        Assert.Empty(NarrationVerifier.UnsupportedNumbers(narrated, rocket));
+        Assert.Equal("shooter", rocket.PlayerRole);
+    }
+
     private static Narrated Lines(string line) => new(line, line, line, line, "agent");
 }
