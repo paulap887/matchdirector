@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "ninetyfold": {
+      "type": "http",
+      "url": "https://overlayhub.whitemeadow-6a3a991d.swedencentral.azurecontainerapps.io/mcp"
+    }
+  }
+}

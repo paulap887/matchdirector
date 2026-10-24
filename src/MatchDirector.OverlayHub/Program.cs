@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using MatchDirector.OverlayHub;
+using ModelContextProtocol.AspNetCore;
 using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,11 +14,17 @@ builder.Services.AddSingleton<BroadcastState>();
 builder.Services.AddSingleton<Demand>();
 builder.Services.AddSingleton<ViewerLanguages>();
 
+// MCP server: read-only tools over the match on air, for any agent that speaks the Model Context Protocol.
+builder.Services.AddMcpServer(options => options.ServerInfo = new() { Name = "ninetyfold", Title = "Ninetyfold live match", Version = "1.0.0" })
+    .WithHttpTransport(options => options.SessionMode = HttpServerSessionMode.Stateless)
+    .WithTools<MatchTools>();
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
 app.UseStaticFiles(); // the React app, copied into wwwroot when published
 app.MapHub<MatchHub>("/hubs/match");
+app.MapMcp("/mcp");
 
 // Current state for viewers who join mid-match.
 app.MapGet("/api/state", (BroadcastState state, Demand demand) => state.Current(demand.Status));
@@ -85,3 +92,4 @@ app.MapFallbackToFile("index.html");
 app.Run();
 
 internal sealed record StatusReport(string Status);
+
