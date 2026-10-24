@@ -1,10 +1,11 @@
 {
-  "generated": "2026-10-20T17:30:03.335895+00:00",
+  "generated": "2026-10-24T13:07:23.375417+00:00",
   "options": {
     "matches": 50,
     "liveMatches": 2,
     "maxMoments": 40,
     "redTeam": 15,
+    "translate": 8,
     "firstSeed": 1000,
     "endpoint": "(set)",
     "fast": "fast",
@@ -16,23 +17,26 @@
   "deterministic": {
     "matches": 50,
     "events": 96650,
-    "moments": 1901,
-    "momentsWithValidEvidence": 1901,
-    "templateNarrations": 1901,
-    "templatesPassingNumberCheck": 1901,
+    "moments": 1959,
+    "momentsWithValidEvidence": 1959,
+    "templateNarrations": 1959,
+    "templatesPassingNumberCheck": 1959,
     "goals": 144,
     "goalMoments": 144,
-    "eventsPerSecond": 261698,
+    "eventsPerSecond": 211445,
     "meanGoals": 2.88,
     "meanShots": 27.5,
     "meanPassAccuracy": 78.6,
     "momentsPerMatch": {
-      "HighRegain": 11.1,
-      "PassingMove": 8.4,
+      "HighRegain": 8.4,
       "DifficultPass": 5.4,
+      "PassingMove": 4.8,
+      "RocketShot": 3.3,
       "KeySave": 2.9,
       "Goal": 2.9,
       "MomentumShift": 2.6,
+      "DrivingRun": 2.3,
+      "DistanceMilestone": 2,
       "TempoShift": 1.4,
       "BigChanceMissed": 1.2,
       "HalfTime": 1,
@@ -44,65 +48,65 @@
   "live": {
     "matches": 2,
     "moments": 80,
-    "agentNarrations": 75,
-    "numberCheckRejections": 5,
-    "reviewed": 33,
-    "criticApproved": 22,
-    "criticFlagged": 11,
-    "rewritten": 6,
+    "agentNarrations": 78,
+    "numberCheckRejections": 2,
+    "reviewed": 36,
+    "criticApproved": 26,
+    "criticFlagged": 10,
+    "rewritten": 5,
     "templateAfterReview": 1,
-    "insightsRequested": 21,
-    "insightsKept": 14,
-    "insightsDropped": 7,
-    "fanLineIssues": 6,
+    "insightsRequested": 22,
+    "insightsKept": 16,
+    "insightsDropped": 6,
+    "fanLineIssues": 5,
     "narrator": {
       "count": 80,
-      "p50": 1739,
-      "p95": 2353
+      "p50": 1089,
+      "p95": 1469
     },
     "analyst": {
-      "count": 21,
-      "p50": 5936,
-      "p95": 7723
+      "count": 22,
+      "p50": 5206,
+      "p95": 7299
     },
     "critic": {
-      "count": 39,
-      "p50": 4214,
-      "p95": 10553
+      "count": 41,
+      "p50": 4784,
+      "p95": 6860
     },
     "sampleIssues": [
-      "KeySave: insight: Incorrect score phrasing \u2014 \u0022preserving 0-30\u0022 is wrong (should be preserving 0-0).",
-      "PassingMove: homeFan: line contradicts the fan\u0027s mood \u2014 it says both \u0027we are worried\u0027 and \u0027and celebrate\u0027, but facts list mood as \u0027worried\u0027 for the home fan (Kestrel Bay FC).",
-      "BigChanceMissed: insight: Incorrect score reported \u2014 text says \u00220\u201330 game\u0022 but the facts show a 0\u20130 score.",
-      "KeySave: homeFan: The line is written as if the home fan\u0027s team \u0022hasn\u0027t conceded\u0022 (\u0022still no goals against us\u0022), which misrepresents the facts. The home fan is from Kestrel Bay FC (the attacking/home team in this moment) \u2014 they would more naturally refer to \u0022no goal for us\u0022; as written it implies the home fan supports the team that Halvik (Redmoor Rovers) plays for, which contradicts the facts.",
-      "KeySave: awayFan: Claims Redmoor Rovers are \u0022ahead at 1-0\u0022 \u2014 facts show Redmoor (away) have 0 and Kestrel Bay (home) lead 1-0, so the away fan cannot say \u0022keeping us ahead\u0022.",
-      "PassingMove: homeFan: Incorrectly says the move was \u0022for a goal\u0022 \u2014 the facts describe a passing move but do not state it resulted in a goal.",
-      "MomentumShift: insight: Claims that momentum \u221241.4 \u0022still favours Kestrel\u0022 contradict the metric meaning (momentum is -100..100, positive = home); -41.4 indicates Redmoor Rovers hold the momentum, not Kestrel.",
-      "HalfTime: insight: Claims Redmoor Rovers are \u0022forcing turnovers\u0022 are not supported by the provided facts/evidence (no turnover/turnover-forcing metric is given).",
-      "KeySave: homeFan: Claims Halvik is \u0022our keeper\u0022 for the home supporters \u2014 Piotr Halvik plays for Redmoor Rovers (the away team), so the home fan cannot refer to him as their keeper.",
-      "KeySave: insight: Says the save \u0022halted Kestrel\u0027s momentum (match momentum 50.3)\u0022 \u2014 the provided momentum value is a match-level number (50.3) and there is no evidence that it specifically represented or was \u0022halted\u0022 for Kestrel Bay FC; the causal claim about halting Kestrel\u0027s momentum is not supported by the facts.",
-      "Goal: insight: Claims the goal \u0027ends Kestrel Bay\u0027s 56.5% possession edge\u0027 \u2014 the facts show the possession numbers (56.5% v 43.5%) but do not show that the goal \u0027ended\u0027 that edge or changed possession figures; that causal/temporal claim is not supported by the provided evidence.",
-      "PassingMove: awayFan: Claims the 10-pass move led to a 2-1 lead \u2014 the facts do not state this move caused the score to become 2-1."
+      "BigChanceMissed: insight: Claims that the miss \u0022wastes Redmoor\u0027s 64.4% possession and 81.7% pass accuracy\u0022 and \u0022stalling their momentum\u0022 assert a causal effect the facts do not support. The data show possession (64.4%), pass accuracy (81.7%) and momentum (-18.8) at the time, but do not prove the miss directly wasted those team metrics or caused the momentum figure.",
+      "PassingMove: casual: Claims the 12-pass run happened \u0022before scoring\u0022 \u2014 the facts do not say this move led to a goal or that the pass sequence preceded the only goal.",
+      "PassingMove: homeFan: Says the 12-pass move \u0022kept the lead\u0022 (causal claim). The facts show the score is 1-0 at minute 50 but do not support that this specific move preserved or created the lead.",
+      "KeySave: casual: Says the save \u0022kept Redmoor Rovers ahead\u0022 but Redmoor are 0-1 down (the save prevented Kestrel Bay FC from extending their lead).",
+      "KeySave: homeFan: Claims the save \u0022stopped our chance to equalize\u0022 \u2014 Kestrel Bay FC are leading 1-0, so any successful shot by them would not equalize.",
+      "KeySave: awayFan: States the save \u0022keeping us in the lead\u0022 \u2014 Redmoor Rovers are trailing 0-1, so the save did not keep them in the lead.",
+      "MomentumShift: insight: Incorrect attribution \u2014 momentum -41.9 is negative (meaning the away team, Redmoor Rovers, has the recent threat). The line says momentum \u0022stays -41.9 for Kestrel Bay\u0022, which contradicts the facts/meaning.",
+      "MomentumShift: awayFan: Implies the away supporter is \u0027down 0-1\u0027 \u2014 but facts show Redmoor Rovers (the away club) are leading 1-0; the fan quote should not present the away club as being behind.",
+      "BigChanceMissed: insight: Claim that Dario Okonkwe \u0022lost a decisive momentum swing\u0022 is not supported by the provided evidence \u2014 momentum is 50 (previously 51.8 after the goal), which does not clearly indicate a decisive swing away from Kestrel Bay FC.",
+      "MomentumShift: analyst: Incorrect interpretation \u2014 momentum is -41.4 (negative = home on top) so it does not support that Redmoor Rovers are generating more overall threat; the facts show momentum favouring Kestrel Bay FC.",
+      "MomentumShift: awayFan: Incorrect claim \u2014 saying Redmoor Rovers have \u0022strong momentum\u0022 contradicts the momentum metric (\u221241.4, which by the stated meaning favours the home team, Kestrel).",
+      "KeySave: insight: Claims it \u0022halted Kestrel\u2019s momentum (match momentum 50.3)\u0022 are not supported by the facts. The evidence shows a TempoShift for Kestrel Bay at minute 46 (suggesting increased tempo) and a single overall match momentum value (50.3) \u2014 there is no clear fact that the save halted Kestrel Bay\u0027s momentum."
     ],
     "sampleInsights": [
-      "MomentumShift (24\u0027): At 24\u0027, Redmoor\u2019s momentum (\u221242.5) shows they\u2019ve taken control: 62.8% possession, 38 progressive passes (Kestrel 24) and a 23\u0027 high regain 17 m from goal \u2014 shifting control and raising chance quality in a 0\u20130 game.",
-      "KeySave (35\u0027): Halvik\u2019s save denied a 0.196 xG chance from 9.8 m at 24\u00B0 (19.8 m/s), halting Kestrel\u2019s momentum (\u002B25.3) and keeping the 0\u20130 game despite Kestrel\u2019s 0.85 xG overall.",
-      "Goal (45\u0027): Okonkwe\u0027s 45\u0027 goal (xG 0.254, 9 m, 44.1\u00B0) gives Kestrel a 1-0 lead despite 38.2% possession; equal shots (8) and momentum \u002B11.8 now reward clinical counterplay from a 2-pass, 15s move.",
-      "HalfTime (47\u0027): Kestrel lead 1-0 despite Redmoor\u2019s 60.9% possession and 80.8% pass accuracy; xG is level (1.26 vs 1.19). Kestrel\u2019s intense pressing (100 vs 66 pressures) and a clinical finish (goal xG 0.254) turned control into a lead.",
-      "KeySave (63\u0027): Halvik\u0027s minute-63 save denied a 0.181 xG close-range (13.1 m, 31.1\u00B0) chance, preserving Kestrel Bay\u0027s 1\u20130 lead; it halts Redmoor\u0027s surge despite their 57.8% possession and preserves home momentum 42.4.",
-      "Goal (70\u0027): Okonkwe\u2019s finish (xG 0.107) makes it 2\u20130, rewards an 8-pass, 32-second move from 15.2 m; shifts momentum (31.6) and highlights Kestrel\u2019s effective pressing (146 pressures) despite only 43.1% possession."
+      "KeySave (2\u0027): Halvik\u2019s save stopped a 0.156 xG effort (14.3 m, 28.7\u00B0 at 25.5 m/s), preserving 0\u20130 and denying Kestrel Bay early control despite their 60.1% possession and 55.2 momentum; it keeps Redmoor competitive. ",
+      "MomentumShift (24\u0027): Redmoor Rovers are dominating: momentum \u221242.5 (away on top), 62.8% possession, 140 passes (81.4% accuracy) vs Kestrel 79 passes (70.9%), 38 progressive passes to 24 \u2014 control and threat despite 0\u20130 and similar xG.",
+      "KeySave (35\u0027): Halvik\u0027s save (xG 0.196 from 9.8 m, 24\u00B0, 19.8 m/s) prevents Kestrel Bay taking the lead, preserving Redmoor\u0027s control (63.1% possession) and positive momentum (25.3) after their 12-pass possession sequence.",
+      "KeySave (38\u0027): Halvik\u2019s save (xG 0.164, 13.7 m, 28.5 m/s) stops Kestrel converting growing momentum (momentum 11.9) \u2014 their 4th on\u2011target \u2014 and preserves Redmoor\u2019s territorial control (possession 62.9%).",
+      "Goal (45\u0027): Okonkwe\u0027s 45\u0027 goal (xG 0.254) makes it 1\u20130, rewarding Kestrel Bay\u0027s high pressing (93 pressures vs 66) despite 38.2% possession; a two-pass, 15s move created the chance and shifts momentum (\u002B11.8).",
+      "HalfTime (47\u0027): Kestrel Bay lead 1-0 despite 39.1% possession and 71.2% pass accuracy (vs Redmoor 60.9%/80.8%), showing efficient counter-pressing (100 pressures vs 66) and finishing (Okonkwe 0.254 xG) \u2014 shifts momentum (-17.2)."
     ],
     "recaps": [
       {
         "matchId": "md-1000",
-        "headline": "Okonkwe double seals Kestrel Bay win",
+        "headline": "Okonkwe double secures Kestrel Bay win",
         "source": "agent",
         "trace": [
           {
             "agent": "Recap writer",
             "model": "gpt-5-mini",
             "outcome": "wrote headline and 4 reports",
-            "durationMs": 6453
+            "durationMs": 6176
           },
           {
             "agent": "Number check",
@@ -114,21 +118,21 @@
             "agent": "Verifier critic",
             "model": "gpt-5-mini",
             "outcome": "approved",
-            "durationMs": 4009
+            "durationMs": 4516
           }
         ],
-        "casual": "Dario Okonkwe scored both goals as Kestrel Bay FC beat Redmoor Rovers 2-0. Okonkwe was named player of the match. The win came despite Kestrel Bay having less possession."
+        "casual": "Dario Okonkwe scored 2 as Kestrel Bay FC beat Redmoor Rovers 2-0 at Lantern Park. He was named player of the match."
       },
       {
         "matchId": "md-1001",
-        "headline": "Corvel nets four as Rovers rout Kestrel Bay",
+        "headline": "Corvel nets four as Rovers win 4-1",
         "source": "agent",
         "trace": [
           {
             "agent": "Recap writer",
             "model": "gpt-5-mini",
             "outcome": "wrote headline and 4 reports",
-            "durationMs": 5945
+            "durationMs": 6558
           },
           {
             "agent": "Number check",
@@ -140,12 +144,80 @@
             "agent": "Verifier critic",
             "model": "gpt-5-mini",
             "outcome": "approved",
-            "durationMs": 3544
+            "durationMs": 4343
           }
         ],
-        "casual": "Redmoor Rovers beat Kestrel Bay FC 4-1 at Lantern Park. Bastian Corvel scored every Redmoor goal and was named player of the match."
+        "casual": "Bastian Corvel scored 4 as Redmoor Rovers beat Kestrel Bay FC 4-1. He was unstoppable and took home player of the match honours."
       }
     ]
+  },
+  "translation": {
+    "moments": 8,
+    "languages": [
+      {
+        "code": "fr",
+        "name": "French",
+        "lines": 37,
+        "kept": 37,
+        "latency": {
+          "count": 9,
+          "p50": 1514,
+          "p95": 2783
+        }
+      },
+      {
+        "code": "es",
+        "name": "Spanish",
+        "lines": 37,
+        "kept": 37,
+        "latency": {
+          "count": 9,
+          "p50": 1639,
+          "p95": 2741
+        }
+      },
+      {
+        "code": "de",
+        "name": "German",
+        "lines": 37,
+        "kept": 37,
+        "latency": {
+          "count": 9,
+          "p50": 1776,
+          "p95": 2508
+        }
+      },
+      {
+        "code": "pt",
+        "name": "Portuguese",
+        "lines": 37,
+        "kept": 37,
+        "latency": {
+          "count": 9,
+          "p50": 1654,
+          "p95": 2933
+        }
+      },
+      {
+        "code": "it",
+        "name": "Italian",
+        "lines": 37,
+        "kept": 37,
+        "latency": {
+          "count": 9,
+          "p50": 1716,
+          "p95": 2596
+        }
+      }
+    ],
+    "samples": [
+      "French: \u0022Early save by Piotr Halvik keeps the score 0-0 at 2 minutes.\u0022 \u2192 \u0022Une premi\u00E8re parade de Piotr Halvik maintient le score \u00E0 0-0 apr\u00E8s 2 minutes.\u0022",
+      "Spanish: \u0022Early save by Piotr Halvik keeps the score 0-0 at 2 minutes.\u0022 \u2192 \u0022Una parada temprana de Piotr Halvik mantiene el marcador 0-0 a los 2 minutos.\u0022",
+      "German: \u0022Early save by Piotr Halvik keeps the score 0-0 at 2 minutes.\u0022 \u2192 \u0022Fr\u00FChe Parade von Piotr Halvik h\u00E4lt den Spielstand nach 2 Minuten bei 0-0.\u0022",
+      "Portuguese: \u0022Early save by Piotr Halvik keeps the score 0-0 at 2 minutes.\u0022 \u2192 \u0022Defesa r\u00E1pida de Piotr Halvik mant\u00E9m o 0-0 aos 2 minutos.\u0022",
+      "Italian: \u0022Early save by Piotr Halvik keeps the score 0-0 at 2 minutes.\u0022 \u2192 \u0022Una parata precoce di Piotr Halvik mantiene il punteggio sullo 0-0 al 2\u00B0 minuto.\u0022"
+    ],
+    "rejections": []
   },
   "redTeam": {
     "moments": 15,
@@ -163,10 +235,10 @@
         "name": "Wrong team",
         "description": "credits the moment to the other club",
         "expectedCatcher": "critic",
-        "samples": 10,
+        "samples": 5,
         "caughtByCode": 0,
-        "caughtByCritic": 10,
-        "caught": 10
+        "caughtByCritic": 5,
+        "caught": 5
       },
       {
         "name": "Swapped fan lines",
@@ -174,8 +246,8 @@
         "expectedCatcher": "critic",
         "samples": 15,
         "caughtByCode": 0,
-        "caughtByCritic": 14,
-        "caught": 14
+        "caughtByCritic": 12,
+        "caught": 12
       },
       {
         "name": "Wrong score story",

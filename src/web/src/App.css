@@ -166,3 +166,9 @@ footer { font-size: 12px; color: var(--muted); text-align: center; }
 .card.recap .line { font-size: clamp(16px, 2vw, 19px); font-weight: 500; }
 .potm { margin: 0 0 12px; color: var(--muted); }
 .potm b { color: var(--text); }
+
+/* Language picker, speed alerts and the "shown in English" tag */
+.lang { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; font: inherit; font-size: 13px; }
+.alert { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); border-radius: 4px; padding: 2px 7px; font-size: 11px; font-weight: 700; justify-self: start; }
+.en { margin-left: 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 1px 4px; vertical-align: middle; text-decoration: none; cursor: help; }
+.feed li .alert { grid-column: 1 / -1; }

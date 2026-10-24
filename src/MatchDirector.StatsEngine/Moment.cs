@@ -11,7 +11,28 @@ public enum MomentType
     MomentumShift,
     TempoShift,
     HalfTime,
-    FullTime
+    FullTime,
+    RocketShot,
+    DrivingRun,
+    DistanceMilestone
+}
+
+/// <summary>
+/// Predefined thresholds that trigger speed and distance indicators. Moments that cross one carry the threshold as a
+/// metric (speedThreshold), so viewers can see which line was crossed.
+/// </summary>
+public static class Thresholds
+{
+    /// <summary>A shot at or above this ball speed (metres per second) is a rocket.</summary>
+    public const double RocketShotSpeed = 30;
+
+    /// <summary>A carry at or above this speed (metres per second) and <see cref="DrivingRunMinDistance"/> is a driving run.</summary>
+    public const double DrivingRunSpeed = 6.9;
+
+    public const double DrivingRunMinDistance = 12;
+
+    /// <summary>Players are announced each time their total distance carried passes a multiple of this (metres).</summary>
+    public const double CarryMilestone = 150;
 }
 
 /// <summary>

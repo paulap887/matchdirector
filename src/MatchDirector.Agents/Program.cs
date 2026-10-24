@@ -32,6 +32,7 @@ if (fast is not null && reasoning is not null)
 {
     builder.AddKeyedAzureOpenAIClient("reasoning");
     builder.Services.AddSingleton(sp => StudioFactory.Team(
+        ChatClient(sp, "fast", fast),
         ChatClient(sp, "reasoning", reasoning),
         builder.Configuration["Studio:FastModel"] ?? Model("fast"),
         builder.Configuration["Studio:ReasoningModel"] ?? Model("reasoning"),

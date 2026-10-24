@@ -1,9 +1,11 @@
+import { t, translated, type Lang } from './i18n'
 import type { MatchInfo, MatchSnapshot, MetricKey, Mode, Overlay, PlayerInfo, TeamInfo } from './types'
 import type { Prefs } from './prefs'
 
 /** Everything a component needs to render the current viewer's personalised view. */
 export type View = {
   mode: Mode
+  lang: Lang
   info: MatchInfo
   snapshot?: MatchSnapshot
   club?: TeamInfo
@@ -11,11 +13,14 @@ export type View = {
   metric?: MetricKey
 }
 
+/** A line the studio wrote, and whether it is shown in English because no checked translation exists (yet). */
+export type Line = { text: string; english: boolean }
+
 export function buildView(prefs: Prefs, info: MatchInfo, snapshot?: MatchSnapshot): View {
   const club = [info.home, info.away].find((t) => t.teamId === prefs.clubId)
   const team = [info.home, info.away].find((t) => t.players.some((p) => p.playerId === prefs.playerId))
   const player = team?.players.find((p) => p.playerId === prefs.playerId)
-  return { mode: prefs.mode, info, snapshot, club, player: player && team && { ...player, team }, metric: prefs.metric }
+  return { mode: prefs.mode, lang: prefs.lang, info, snapshot, club, player: player && team && { ...player, team }, metric: prefs.metric }
 }
 
 /** The variant key this viewer reads: analyst, a club's fans, or the casual line. */
@@ -25,12 +30,9 @@ export function variantFor(view: View): string {
   return 'casual'
 }
 
-/** The line this viewer should read for an overlay. */
-export function lineFor(overlay: Overlay, view: View): string {
-  if (view.mode === 'analyst') return overlay.variants.analyst
-  if (view.mode === 'club' && view.club)
-    return overlay.variants[view.club.teamId === view.info.home.teamId ? 'homeFan' : 'awayFan'] ?? overlay.variants.casual
-  return overlay.variants.casual
+/** The line this viewer should read for an overlay or report, in their language where a translation passed its check. */
+export function lineFor(variants: Record<string, string>, view: View): Line {
+  return translated(variants, variantFor(view), view.lang) ?? translated(variants, 'casual', view.lang) ?? { text: '', english: false }
 }
 
 /** Which overlays this viewer sees: casual fans get the headline moments, player focus only that player's. */
@@ -60,9 +62,10 @@ export function isOurs(overlay: Overlay, view: View): boolean | undefined {
 export function mood(view: View): string | undefined {
   const s = view.snapshot
   if (!s) return undefined
+  const { lang } = view
   const leader = s.momentum >= 25 ? view.info.home : s.momentum <= -25 ? view.info.away : undefined
-  const tempo = s.chaos >= 60 ? 'end-to-end' : s.chaos <= 40 ? 'calm and controlled' : 'evenly poised'
-  if (!leader) return `Nobody on top · ${tempo}`
-  if (view.mode === 'club' && view.club) return `${leader === view.club ? "We're" : "They're"} on top · ${tempo}`
-  return `${leader.name} on top · ${tempo}`
+  const tempo = t(lang, s.chaos >= 60 ? 'tempo.chaotic' : s.chaos <= 40 ? 'tempo.calm' : 'tempo.even')
+  if (!leader) return `${t(lang, 'mood.nobody')} · ${tempo}`
+  if (view.mode === 'club' && view.club) return `${t(lang, leader === view.club ? 'mood.we' : 'mood.they')} · ${tempo}`
+  return `${t(lang, 'mood.team', { team: leader.name })} · ${tempo}`
 }

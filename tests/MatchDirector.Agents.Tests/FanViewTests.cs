@@ -17,6 +17,8 @@ public class FanViewTests
     [InlineData(MomentType.BigChanceMissed, "Redmoor Rovers", "relieved", "frustrated")]
     [InlineData(MomentType.HighRegain, "Redmoor Rovers", "worried", "celebrate")]
     [InlineData(MomentType.TempoShift, "Kestrel Bay FC", "neutral", "neutral")]
+    [InlineData(MomentType.RocketShot, "Kestrel Bay FC", "celebrate", "relieved")]
+    [InlineData(MomentType.DrivingRun, "Redmoor Rovers", "worried", "celebrate")]
     public void Each_fan_gets_the_mood_of_their_own_side(MomentType type, string team, string homeMood, string awayMood)
     {
         var facts = Facts(type, team);

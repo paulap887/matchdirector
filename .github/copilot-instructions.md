@@ -14,10 +14,10 @@ Microsoft Foundry and Microsoft Agent Framework.
 
 ## Architecture
 1. **Ingest**: `MatchDirector.Simulator` plays seeded, deterministic matches and publishes `MatchInfo` and `MatchEvent` to Event Hubs.
-2. **Interpret**: `MatchDirector.StatsEngine` (`MatchAnalyzer`) turns events into stats and `Moment`s. Each moment carries its metrics and the event IDs (`Evidence`) they came from.
-3. **Explain**: `MatchDirector.Agents`. The `Director` (code) orchestrates a fast lane (Narrator agent, then a code number check, then on air) and a review lane (Tactical analyst with code tools, Verifier critic, rewrite and recheck). At full time the Recap writer drafts a report from `RecapFacts`; it is number-checked and critic-reviewed, with `TemplateRecap` as the fallback. Player of the match comes from `PlayerRatings` in the stats engine.
+2. **Interpret**: `MatchDirector.StatsEngine` (`MatchAnalyzer`) turns events into stats and `Moment`s. Each moment carries its metrics and the event IDs (`Evidence`) they came from. Speed and distance alerts fire at the constants in `Thresholds`.
+3. **Explain**: `MatchDirector.Agents`. The `Director` (code) orchestrates a fast lane (Narrator agent, then a code number check, then on air) and a review lane (Tactical analyst with code tools, Verifier critic, rewrite and recheck). At full time the Recap writer drafts a report from `RecapFacts`; it is number-checked and critic-reviewed, with `TemplateRecap` as the fallback. Player of the match comes from `PlayerRatings` in the stats engine. A translation lane has the Translator agent translate checked lines into the languages viewers are watching in (reported by the hub); `TranslationCheck` requires each translated line to keep exactly the numbers of its English line, otherwise the English line is shown.
 4. **Render**: `MatchDirector.OverlayHub` pushes overlays over SignalR; `src/web` draws them.
-5. **Personalise**: viewer modes in `src/web` (casual, analyst, club fan, player focus) select different overlay variants and layouts.
+5. **Personalise**: viewer modes in `src/web` (casual, analyst, club fan, player focus) select different overlay variants and layouts. Interface text lives in `src/web/src/i18n.ts` (left-to-right languages only); translated variants use keys such as `fr:casual`.
 
 ## When generating code
 - An agent never computes a statistic. If a line needs a new number, add it to the stats engine as a moment metric or a tool result.

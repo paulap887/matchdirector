@@ -35,6 +35,8 @@ public sealed record MomentFacts(
         MomentType.DifficultPass => "passer",
         MomentType.PassingMove => "player who made the last pass of the move",
         MomentType.HighRegain => "player who won the ball back",
+        MomentType.RocketShot => "shooter",
+        MomentType.DrivingRun or MomentType.DistanceMilestone => "ball carrier",
         _ => null
     };
 
@@ -58,6 +60,7 @@ public sealed record MomentFacts(
         var goodForOwner = Moment.Type != MomentType.BigChanceMissed;
         var mood = (ours, goodForOwner) switch
         {
+            (false, true) when Moment.Type == MomentType.RocketShot => "relieved", // a thunderous shot that did not go in
             (true, true) => "celebrate",
             (true, false) => "frustrated",
             (false, true) => "worried",

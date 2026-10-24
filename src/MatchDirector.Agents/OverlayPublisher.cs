@@ -14,6 +14,20 @@ public sealed class OverlayPublisher(HttpClient http, ILogger<OverlayPublisher> 
     public Task PublishAsync(MatchSnapshot snapshot, CancellationToken ct) => PostAsync("api/snapshots", snapshot, ct);
     public Task PublishAsync(MatchRecap recap, CancellationToken ct) => PostAsync("api/recaps", recap, ct);
 
+    /// <summary>The languages viewers are watching in right now, besides English; empty if the hub cannot be reached.</summary>
+    public async Task<IReadOnlyList<string>> LanguagesAsync(CancellationToken ct)
+    {
+        try
+        {
+            return await http.GetFromJsonAsync<string[]>("api/languages", MatchDirectorJson.Options, ct) ?? [];
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogDebug(ex, "Overlay hub unreachable for languages");
+            return [];
+        }
+    }
+
     private async Task PostAsync<T>(string path, T body, CancellationToken ct)
     {
         try

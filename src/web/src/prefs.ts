@@ -1,18 +1,20 @@
 import { useEffect, useState } from 'react'
+import { isLang, type Lang } from './i18n'
 import type { MetricKey, Mode } from './types'
 
-export type Prefs = { mode: Mode; clubId?: string; playerId?: string; metric?: MetricKey }
+export type Prefs = { mode: Mode; lang: Lang; clubId?: string; playerId?: string; metric?: MetricKey }
 
 const KEY = 'matchdirector.prefs'
 
 const MODES: Mode[] = ['casual', 'analyst', 'club', 'player']
 
-/** Saved preferences, overridden by a shareable link such as ?mode=club&club=RDM or ?mode=player&player=KBY-09. */
+/** Saved preferences, overridden by a shareable link such as ?mode=club&club=RDM&lang=fr or ?mode=player&player=KBY-09. */
 function load(): Prefs {
-  let prefs: Prefs = { mode: 'casual' }
+  let prefs: Prefs = { mode: 'casual', lang: 'en' }
   try {
     const saved = localStorage.getItem(KEY)
     if (saved) prefs = { ...prefs, ...JSON.parse(saved) }
+    if (!isLang(prefs.lang)) prefs.lang = 'en'
   } catch {
     // storage unavailable (private mode, blocked cookies): fall back to defaults
   }
@@ -23,6 +25,8 @@ function load(): Prefs {
   if (url.get('club')) prefs.clubId = url.get('club')!
   if (url.get('player')) prefs.playerId = url.get('player')!
   if (url.get('metric')) prefs.metric = url.get('metric') as MetricKey
+  const lang = url.get('lang')
+  if (isLang(lang)) prefs.lang = lang
   return prefs
 }
 

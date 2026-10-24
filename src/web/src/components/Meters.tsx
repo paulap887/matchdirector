@@ -1,33 +1,37 @@
+import { num, pct, t, type Key, type Lang } from '../i18n'
 import type { TeamStats } from '../types'
 import type { View } from '../view'
 
-type Row = [label: string, pick: (t: TeamStats) => number, format: (v: number) => string]
+type Row = [label: Key, pick: (t: TeamStats) => number, format: (v: number, lang: Lang) => string]
+
+const count = (v: number, lang: Lang) => num(lang, v)
+const share = (v: number, lang: Lang) => pct(lang, v)
 
 const ANALYST_ROWS: Row[] = [
-  ['Possession', (t) => t.possession, (v) => `${Math.round(v)}%`],
-  ['xG', (t) => t.xg, (v) => v.toFixed(2)],
-  ['Shots', (t) => t.shots, String],
-  ['On target', (t) => t.shotsOnTarget, String],
-  ['Pass accuracy', (t) => t.passAccuracy, (v) => `${Math.round(v)}%`],
-  ['Progressive passes', (t) => t.progressivePasses, String],
-  ['Pressures', (t) => t.pressures, String],
-  ['Tackles won', (t) => t.tackles, String],
-  ['Interceptions', (t) => t.interceptions, String],
+  ['stat.possession', (t) => t.possession, share],
+  ['stat.xg', (t) => t.xg, (v, lang) => num(lang, v, 2)],
+  ['stat.shots', (t) => t.shots, count],
+  ['stat.onTarget', (t) => t.shotsOnTarget, count],
+  ['stat.passAccuracy', (t) => t.passAccuracy, share],
+  ['stat.progressive', (t) => t.progressivePasses, count],
+  ['stat.pressures', (t) => t.pressures, count],
+  ['stat.tackles', (t) => t.tackles, count],
+  ['stat.interceptions', (t) => t.interceptions, count],
 ]
 
 const SIMPLE_ROWS: Row[] = [
-  ['Possession', (t) => t.possession, (v) => `${Math.round(v)}%`],
-  ['Shots', (t) => t.shots, String],
+  ['stat.possession', (t) => t.possession, share],
+  ['stat.shots', (t) => t.shots, count],
 ]
 
 /** Team comparison. Club fans see their team on the left as "Us". */
 export function Meters({ view }: { view: View }) {
-  const { info, snapshot, mode, club } = view
+  const { info, snapshot, mode, club, lang } = view
   if (!snapshot) return null
 
   const flip = mode === 'club' && club?.teamId === info.away.teamId
   const [left, right] = flip ? [snapshot.away, snapshot.home] : [snapshot.home, snapshot.away]
-  const [leftName, rightName] = mode === 'club' && club ? ['Us', 'Them'] : [info.home.name, info.away.name]
+  const [leftName, rightName] = mode === 'club' && club ? [t(lang, 'us'), t(lang, 'them')] : [info.home.name, info.away.name]
   const rows = mode === 'analyst' ? ANALYST_ROWS : SIMPLE_ROWS
   const momentum = flip ? -snapshot.momentum : snapshot.momentum
 
@@ -44,9 +48,9 @@ export function Meters({ view }: { view: View }) {
           const a = pick(right)
           return (
             <div className="stat" key={label}>
-              <span className="h">{fmt(h)}</span>
-              <span className="label">{label}</span>
-              <span className="a">{fmt(a)}</span>
+              <span className="h">{fmt(h, lang)}</span>
+              <span className="label">{t(lang, label)}</span>
+              <span className="a">{fmt(a, lang)}</span>
               <div className="bar">
                 <div style={{ width: `${h + a === 0 ? 50 : (100 * h) / (h + a)}%` }} />
               </div>
@@ -57,8 +61,8 @@ export function Meters({ view }: { view: View }) {
 
       {mode !== 'casual' && (
         <>
-          <Gauge left={rightName} title="Momentum" right={leftName} value={50 + momentum / 2} className="momentum" />
-          <Gauge left="Control" title="Game state" right="Chaos" value={snapshot.chaos} className="chaos" />
+          <Gauge left={rightName} title={t(lang, 'stat.momentum')} right={leftName} value={50 + momentum / 2} className="momentum" />
+          <Gauge left={t(lang, 'control')} title={t(lang, 'gameState')} right={t(lang, 'chaos')} value={snapshot.chaos} className="chaos" />
         </>
       )}
     </div>
