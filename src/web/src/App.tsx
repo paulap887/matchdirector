@@ -23,7 +23,8 @@ export default function App() {
     document.documentElement.lang = lang
   }, [lang])
   const view = info ? buildView(prefs, info, snapshot) : undefined
-  const live = useLiveOverlay(view ? overlays.filter((o) => visible(o, view)) : [])
+  const [heldId, setHeldId] = useState<string>()
+  const live = useLiveOverlay(view ? overlays.filter((o) => visible(o, view)) : [], heldId)
 
   return (
     <div className={`studio mode-${prefs.mode}`}>
@@ -60,7 +61,11 @@ export default function App() {
             {recap && recap.matchId === view.info.matchId && <RecapCard recap={recap} view={view} />}
             {prefs.mode === 'player' && <PlayerCard view={view} />}
             {mood(view) && <p className="mood">{mood(view)}</p>}
-            {live ? <OverlayCard key={`${live.overlayId}-${prefs.mode}`} overlay={live} view={view} /> : <Idle view={view} />}
+            {live ? (
+              <OverlayCard key={`${live.overlayId}-${prefs.mode}`} overlay={live} view={view} held={live.overlayId === heldId} onHold={setHeldId} />
+            ) : (
+              <Idle view={view} />
+            )}
             <Meters view={view} />
             {prefs.mode === 'analyst' && <TopPlayers view={view} />}
           </section>
@@ -159,14 +164,19 @@ function Idle({ view }: { view: View }) {
   return <div className="idle">{text}</div>
 }
 
-/** The newest overlay for this viewer stays on screen for its duration (capped for fast replays). */
-function useLiveOverlay(overlays: Overlay[]): Overlay | undefined {
+/**
+ * The newest overlay for this viewer stays on screen for its duration (capped for fast replays). A card the viewer is
+ * reading (evidence opened, or the pointer on it) is held: it stays, in its latest reviewed version, until released.
+ */
+function useLiveOverlay(overlays: Overlay[], heldId?: string): Overlay | undefined {
   const latest = overlays[0]
   const [expired, setExpired] = useState<string>()
   useEffect(() => {
-    if (!latest) return
+    if (!latest || heldId) return
     const timer = setTimeout(() => setExpired(latest.overlayId), Math.min(latest.durationMs, 8000))
     return () => clearTimeout(timer)
-  }, [latest])
+  }, [latest, heldId])
+  const held = heldId ? overlays.find((o) => o.overlayId === heldId) : undefined
+  if (held) return held
   return latest && latest.overlayId !== expired ? latest : undefined
 }
