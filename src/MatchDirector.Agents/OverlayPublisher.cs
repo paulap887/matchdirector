@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using MatchDirector.Contracts;
 using MatchDirector.StatsEngine;
 
@@ -14,7 +15,10 @@ public sealed class OverlayPublisher(HttpClient http, ILogger<OverlayPublisher> 
     public Task PublishAsync(MatchSnapshot snapshot, CancellationToken ct) => PostAsync("api/snapshots", snapshot, ct);
     public Task PublishAsync(MatchRecap recap, CancellationToken ct) => PostAsync("api/recaps", recap, ct);
 
-    /// <summary>The languages viewers are watching in right now, besides English; empty if the hub cannot be reached.</summary>
+    /// <summary>
+    /// The languages viewers are watching in right now, besides English. Empty if the hub cannot be reached or gives an
+    /// unexpected answer, for example an older hub still running during a deployment, which serves its web page instead.
+    /// </summary>
     public async Task<IReadOnlyList<string>> LanguagesAsync(CancellationToken ct)
     {
         try
@@ -24,8 +28,12 @@ public sealed class OverlayPublisher(HttpClient http, ILogger<OverlayPublisher> 
         catch (HttpRequestException ex)
         {
             logger.LogDebug(ex, "Overlay hub unreachable for languages");
-            return [];
         }
+        catch (Exception ex) when (ex is JsonException or NotSupportedException || ex is OperationCanceledException && !ct.IsCancellationRequested)
+        {
+            logger.LogWarning("Overlay hub gave no usable language list: {Error}", ex.Message);
+        }
+        return [];
     }
 
     private async Task PostAsync<T>(string path, T body, CancellationToken ct)

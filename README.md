@@ -75,7 +75,7 @@ flowchart LR
 
 | Criterion | Evidence |
 |---|---|
-| **Technological implementation** | .NET 10 + Aspire, Microsoft Agent Framework, Microsoft Foundry, Event Hubs, Container Apps, React 19. 156 unit tests and an [evaluation harness](docs/evaluation.md) with a CI quality gate. |
+| **Technological implementation** | .NET 10 + Aspire, Microsoft Agent Framework, Microsoft Foundry, Event Hubs, Container Apps, React 19. 159 unit tests and an [evaluation harness](docs/evaluation.md) with a CI quality gate. |
 | **Agentic design and innovation** | A code Director orchestrating five agents across a fast lane, a review lane and an on-demand translation lane; a critic-and-rewrite loop with a deterministic backstop; an analyst that looks stats up through tools instead of computing them; a visible agent trace on every overlay. |
 | **Real-world impact** | Deployed on Azure with managed identity only (no keys anywhere), self-healing after restarts, Application Insights tracing every agent and model call with token usage, on-demand play so idle cost is about USD 1.6 a day and a watched match about USD 0.05, a budget alert, and seeded matches that replay exactly. |
 | **UX and presentation** | Four genuinely different viewer experiences in six languages, speed alerts and milestones, "Why am I seeing this?" on every overlay and report, shareable views, mobile-friendly layout. |
