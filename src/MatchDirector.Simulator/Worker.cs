@@ -37,6 +37,13 @@ public sealed class Worker(IOptions<SimulatorOptions> options, IMatchEventSink s
                 match.MatchId, match.Home.Name, goals.Count(g => g.TeamId == match.Home.Id),
                 goals.Count(g => g.TeamId == match.Away.Id), match.Away.Name);
             seed++;
+
+            // Hold the next kick-off so the full-time report (written about 15 s after the whistle) stays on screen.
+            if (finished && settings.Loop)
+            {
+                await demand.ReportAsync("idle", stoppingToken);
+                await Task.Delay(settings.FullTimeBreak, stoppingToken);
+            }
         }
         while (settings.Loop && !stoppingToken.IsCancellationRequested);
     }
