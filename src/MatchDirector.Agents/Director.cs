@@ -154,20 +154,32 @@ public sealed class Director(StudioPipeline pipeline, OverlayPublisher publisher
         using var timer = new PeriodicTimer(TimeSpan.FromSeconds(3));
         do
         {
-            var watched = (await publisher.LanguagesAsync(ct)).Select(Languages.Find).OfType<Language>().ToList();
-            var added = watched.Except(_languages).ToList();
-            if (added.Count > 0 || watched.Count != _languages.Count)
-                logger.LogInformation("Viewers watching in: {Languages}", watched.Count == 0 ? "English only" : string.Join(", ", watched.Select(l => l.Code)));
-            _languages = watched;
-
-            // A newly chosen language catches up on the full-time report and the recent moments, newest first.
-            if (added.Count > 0 && _onAir is { } matchId)
+            try
             {
-                _translations.Writer.TryWrite(new Translate(matchId, Recap: true));
-                foreach (var id in _overlayBook.Ids(matchId).Take(CatchUpOverlays))
-                    _translations.Writer.TryWrite(new Translate(id, Recap: false));
+                await FollowLanguagesAsync(ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                logger.LogWarning(ex, "Following viewers' languages failed; trying again"); // one bad poll must never stop translation
             }
         } while (await timer.WaitForNextTickAsync(ct));
+    }
+
+    private async Task FollowLanguagesAsync(CancellationToken ct)
+    {
+        var watched = (await publisher.LanguagesAsync(ct)).Select(Languages.Find).OfType<Language>().ToList();
+        var added = watched.Except(_languages).ToList();
+        if (added.Count > 0 || watched.Count != _languages.Count)
+            logger.LogInformation("Viewers watching in: {Languages}", watched.Count == 0 ? "English only" : string.Join(", ", watched.Select(l => l.Code)));
+        _languages = watched;
+
+        // A newly chosen language catches up on the full-time report and the recent moments, newest first.
+        if (added.Count > 0 && _onAir is { } matchId)
+        {
+            _translations.Writer.TryWrite(new Translate(matchId, Recap: true));
+            foreach (var id in _overlayBook.Ids(matchId).Take(CatchUpOverlays))
+                _translations.Writer.TryWrite(new Translate(id, Recap: false));
+        }
     }
 
     private async Task TranslateAsync(CancellationToken ct)
