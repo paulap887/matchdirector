@@ -37,6 +37,23 @@ public sealed class BroadcastState
     /// <summary>The full-time report of the current match, once written.</summary>
     public JsonElement? Recap { get; set; }
 
+    /// <summary>The match on air: clubs, players and venue.</summary>
+    public JsonElement? MatchInfo
+    {
+        get
+        {
+            lock (_lock)
+                return _matchInfo;
+        }
+    }
+
+    /// <summary>The recent overlays, oldest first, each in its latest (reviewed, translated) version.</summary>
+    public IReadOnlyList<JsonElement> Overlays()
+    {
+        lock (_lock)
+            return _overlays.ToList();
+    }
+
     /// <summary>Records the match on air. Only a different match clears the screen; repeats of the same one just refresh it.</summary>
     public void Start(JsonElement matchInfo)
     {

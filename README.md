@@ -35,10 +35,11 @@ flowchart LR
             REC[Recap writer<br/>gpt-5-mini]
             TRN[Translator<br/>gpt-4.1-mini<br/>+ number check]
         end
-        HUB[Overlay hub<br/>SignalR + React app]
+        HUB[Overlay hub<br/>SignalR + React app<br/>+ MCP server]
         FOUNDRY[[Microsoft Foundry]]
     end
     UI[Viewer<br/>casual · analyst<br/>club fan · player focus<br/>6 languages]
+    EXT[Any MCP client<br/>e.g. GitHub Copilot<br/>in VS Code]
 
     SIM --> EH --> SE --> DIR
     DIR -- fast lane --> NAR --> CHK --> HUB
@@ -47,6 +48,7 @@ flowchart LR
     DIR -- full time --> REC --> CHK
     DIR -- languages being watched --> TRN --> HUB
     HUB <--> UI
+    EXT -- MCP tools --> HUB
     HUB -. kick-off on demand .-> SIM
     Agents -. managed identity .-> FOUNDRY
 ```
@@ -58,7 +60,7 @@ flowchart LR
    - **Review lane**: for non-routine moments the **Verifier critic** checks the meaning (right team and player, right side for fan lines, right score story, no invented history). Flagged lines go back to the Narrator, are rechecked, and are replaced by a deterministic template if they fail twice. For important moments the **Tactical analyst** explains why it matters, looking stats up through code tools; its numbers are checked too.
    - **Full time**: the **Recap writer** drafts the match report from code-computed facts. **Player of the match** is chosen by a published formula in the stats engine, not by the AI. The report is number-checked and critic-reviewed.
    - **Translation lane**: the **Translator** translates the checked lines and reports into the languages viewers are actually watching in, and only those. Code then checks that each translated line carries exactly the numbers of its English line; a line that fails is shown in English with a small "EN" tag. Someone who switches language mid-match gets the recent moments and the report translated within seconds.
-4. **Overlay hub** pushes overlays, live stats and reports over SignalR. Each overlay carries an **agent trace** (which agent or check ran, on which model, how long it took, what it found), shown under "Why am I seeing this?".
+4. **Overlay hub** pushes overlays, live stats and reports over SignalR. Each overlay carries an **agent trace** (which agent or check ran, on which model, how long it took, what it found), shown under "Why am I seeing this?". The hub is also an **MCP server**, so any agent can ask about the live match through the Model Context Protocol and get the same code-computed answers (see [Ask the match from VS Code](#ask-the-match-from-vs-code)).
 5. **Viewer modes** are different experiences, not just different wording: casual (headline moments, big text), analyst (every metric, evidence open, influential players), club fan (partisan narration, us v them, opponent moments muted) and player focus (live player card, only that player's moments). Any view can pin one stat, switch language (the whole interface, the commentary and the number formats) and be shared as a link, for example `?mode=club&club=RDM&lang=fr` or `?mode=player&player=KBY-09`.
 
 ## Challenge stages
@@ -68,15 +70,15 @@ flowchart LR
 | (a) Ingest live events | Deterministic simulator streaming to Event Hubs; JSON-lines export as a reusable synthetic dataset | [`src/MatchDirector.Simulator`](src/MatchDirector.Simulator) |
 | (b) Interpret into stats and patterns | xG from distance and angle, pass difficulty and progression, ball and shot speed, possession by time, momentum, control vs chaos, player ratings; speed and distance alerts at published thresholds; milestones | [`src/MatchDirector.StatsEngine`](src/MatchDirector.StatsEngine) |
 | (c) Explain why a moment matters | Narrator, Tactical analyst with code tools, Verifier critic, full-time Recap writer, Translator, all evidence-backed | [`src/MatchDirector.Agents`](src/MatchDirector.Agents) |
-| (d) Timed, machine-readable overlays | `Overlay` contract (show time, duration, priority, metrics, evidence, variants, agent trace) pushed over SignalR | [`src/MatchDirector.Contracts`](src/MatchDirector.Contracts), [`src/MatchDirector.OverlayHub`](src/MatchDirector.OverlayHub) |
+| (d) Timed, machine-readable overlays | `Overlay` contract (show time, duration, priority, metrics, evidence, variants, agent trace) pushed over SignalR, and the same data as MCP tools | [`src/MatchDirector.Contracts`](src/MatchDirector.Contracts), [`src/MatchDirector.OverlayHub`](src/MatchDirector.OverlayHub) |
 | (e) Personalise | Casual, analyst, club fan and player focus modes; six languages; pin a stat; shareable links | [`src/web`](src/web) |
 
 ## Judging criteria
 
 | Criterion | Evidence |
 |---|---|
-| **Technological implementation** | .NET 10 + Aspire, Microsoft Agent Framework, Microsoft Foundry, Event Hubs, Container Apps, React 19. 159 unit tests and an [evaluation harness](docs/evaluation.md) with a CI quality gate. |
-| **Agentic design and innovation** | A code Director orchestrating five agents across a fast lane, a review lane and an on-demand translation lane; a critic-and-rewrite loop with a deterministic backstop; an analyst that looks stats up through tools instead of computing them; a visible agent trace on every overlay. |
+| **Technological implementation** | .NET 10 + Aspire, Microsoft Agent Framework, Microsoft Foundry, Model Context Protocol (official C# SDK), Event Hubs, Container Apps, React 19. 163 tests and an [evaluation harness](docs/evaluation.md) with a CI quality gate. |
+| **Agentic design and innovation** | A code Director orchestrating five agents across a fast lane, a review lane and an on-demand translation lane; an MCP server that opens the live match to outside agents; a critic-and-rewrite loop with a deterministic backstop; an analyst that looks stats up through tools instead of computing them; a visible agent trace on every overlay. |
 | **Real-world impact** | Deployed on Azure with managed identity only (no keys anywhere), self-healing after restarts, Application Insights tracing every agent and model call with token usage, on-demand play so idle cost is about USD 1.6 a day and a watched match about USD 0.05, a budget alert, and seeded matches that replay exactly. |
 | **UX and presentation** | Four genuinely different viewer experiences in six languages, speed alerts and milestones, "Why am I seeing this?" on every overlay and report, shareable views, mobile-friendly layout. |
 | **Category adherence** | All five required stages, plus suggested features: player tagging with speed and distance indicators at thresholds, notable milestones, multi-language commentary, pass difficulty, ball and shot speed, control vs chaos, synthetic dataset creation and match recaps. |
@@ -90,6 +92,7 @@ Ninetyfold is entered in the **Best Multi-Agent System** category. The studio is
 | **Distinct roles** | Five agents, each with one job, instructions and model: the **Narrator** (gpt-4.1-mini) words a moment for four audiences; the **Tactical analyst** (gpt-5-mini) explains why it matters, looking stats up through code tools; the **Verifier critic** (gpt-5-mini) checks meaning; the **Recap writer** (gpt-5-mini) writes the full-time report; the **Translator** (gpt-4.1-mini) serves other languages. The **Director** and the **number checks** are deliberately code, not agents. |
 | **Shared state and hand-offs** | Every agent works from the same computed facts (metrics with units, evidence event IDs, and fan moods and player roles decided in code). An overlay is handed from lane to lane by ID: the fast lane airs it, the review lane republishes it corrected and annotated, and the translation lane adds languages, but only while the English lines it translated are still the ones on screen. |
 | **Recovering from failures** | Every hand-off has a check and a fallback: an invented number sends the template on air; a critic flag sends the lines back to the Narrator, then a recheck, then the template; a translated line with a changed number falls back to English; a model outage leaves template narration running; a restarted service catches up from Event Hubs and the hub is re-announced every 30 seconds. |
+| **Open to other agents** | The overlay hub is an MCP server with four read-only tools (match state, recent moments with evidence, player stats, full-time report). An outside agent such as GitHub Copilot joins the studio's audience on equal terms: it gets the stats engine's numbers and the event IDs behind them, never a model's guess. |
 | **A result no single agent could match** | One prompt cannot be fast, fact-checked, partisan, explained and multilingual at once. Splitting the work puts a checked overlay on air in about two seconds, reviews it within seconds more, and keeps every number traceable to the stats engine in every language. The agent trace under each overlay shows every step. |
 
 ## Try it
@@ -105,6 +108,27 @@ The [live demo](https://overlayhub.whitemeadow-6a3a991d.swedencentral.azureconta
 7. **Stay to full time** for the match report and player of the match, then kick off another match.
 
 Every view can be shared as a link, for example `?mode=club&club=RDM&lang=es`. The deterministic evaluation runs locally with no Azure account: `dotnet run --project eval/MatchDirector.Eval`.
+
+### Ask the match from VS Code
+
+The overlay hub is an MCP server at `/mcp` (Streamable HTTP, read-only, no sign-in). This repository includes [.vscode/mcp.json](.vscode/mcp.json), so opening it in VS Code offers the **ninetyfold** server; or add it to any MCP client:
+
+```json
+{
+  "servers": {
+    "ninetyfold": { "type": "http", "url": "https://overlayhub.whitemeadow-6a3a991d.swedencentral.azurecontainerapps.io/mcp" }
+  }
+}
+```
+
+Start the server, keep a match playing in the browser, and ask GitHub Copilot in agent mode things like *"Who has been the most dangerous player so far, and why?"* or *"Were there any speed alerts this half?"*. It answers with four tools:
+
+| Tool | Returns |
+|---|---|
+| `get_match_state` | Score, clock, possession, xG, shots, pass accuracy, momentum and control vs chaos |
+| `get_recent_moments` | The latest moments, newest first, with metrics, the analyst's line, the insight and the evidence event IDs; filter by type |
+| `get_player_stats` | One player's live numbers, found by name, shirt number or ID |
+| `get_full_time_report` | Headline, report, player of the match and final stats, once the match ends |
 
 ## Evaluation
 
@@ -143,9 +167,9 @@ src/
   MatchDirector.Simulator        Synthetic match engine
   MatchDirector.StatsEngine      Deterministic football statistics, moments and player ratings
   MatchDirector.Agents           Director and agent studio (Microsoft Agent Framework)
-  MatchDirector.OverlayHub       Real-time overlay hub (SignalR), serves the web app
+  MatchDirector.OverlayHub       Real-time overlay hub (SignalR) and MCP server, serves the web app
   web                            React + Vite viewer
-tests/                           Unit tests
+tests/                           Unit tests, and end-to-end tests of the hub's MCP server
 eval/                            Evaluation harness (guarantees, live agents, red team)
 docs/                            Evaluation report and screenshots
 infra/                           Budget alert (Bicep); other Azure resources are generated by Aspire
@@ -215,7 +239,7 @@ dotnet run --project src/MatchDirector.Simulator -- export 42 match-42.jsonl
 ## Future work
 
 - **Auto-eventing from video**: a vision model that turns broadcast footage into the same `MatchEvent` stream, so the studio runs on real matches without a data feed.
-- **An MCP server** exposing the stats engine's tools, so any agent or copilot can ask about the live match and get the same code-computed answers.
+- **The studio's own agents on MCP**: move the Tactical analyst's tools behind the MCP server too, so inside and outside agents share one tool surface.
 - **Right-to-left languages** such as Arabic, with a mirrored layout, and spoken commentary per language.
 
 ## License
