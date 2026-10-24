@@ -1,11 +1,19 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { momentLabel, num, t, translated, type Lang } from '../i18n'
 import { clock, reviewOf, type AgentStep, type Overlay } from '../types'
 import { isOurs, lineFor, type Line, type View } from '../view'
 
-export function OverlayCard({ overlay, view }: { overlay: Overlay; view: View }) {
+type CardProps = { overlay: Overlay; view: View; held?: boolean; onHold?: (overlayId: string | undefined) => void }
+
+export function OverlayCard({ overlay, view, held, onHold }: CardProps) {
   const { lang } = view
   const [why, setWhy] = useState(view.mode === 'analyst')
+  const [opened, setOpened] = useState(false) // the viewer asked for the evidence
+  const [pointer, setPointer] = useState(false)
+  const reading = opened || pointer
+  // While the viewer is reading, keep this card on screen; newer moments still go to the feed.
+  useEffect(() => onHold?.(reading ? overlay.overlayId : undefined), [reading, overlay.overlayId, onHold])
+  useEffect(() => () => onHold?.(undefined), [onHold])
   const player = useMemo(
     () => [...view.info.home.players, ...view.info.away.players].find((p) => p.playerId === overlay.playerId),
     [view.info, overlay.playerId],
@@ -15,7 +23,12 @@ export function OverlayCard({ overlay, view }: { overlay: Overlay; view: View })
   const insight = translated(overlay.variants, 'insight', lang)
 
   return (
-    <article className={`card t-${overlay.type} ${ours === false ? 'theirs' : ''} ${view.mode}`} aria-live="polite">
+    <article
+      className={`card t-${overlay.type} ${ours === false ? 'theirs' : ''} ${view.mode}`}
+      aria-live="polite"
+      onMouseEnter={() => setPointer(true)}
+      onMouseLeave={() => setPointer(false)}
+    >
       <div className="card-head">
         <span className="tag">{momentLabel(lang, overlay.type)}</span>
         <span className="time">{clock(overlay.matchClock)}</span>
@@ -26,13 +39,21 @@ export function OverlayCard({ overlay, view }: { overlay: Overlay; view: View })
         )}
         <Alert overlay={overlay} lang={lang} />
         <ReviewBadge review={review} lang={lang} />
+        {held && <span className="held">{t(lang, 'held')}</span>}
       </div>
       <p className="line">
         <Text line={lineFor(overlay.variants, view)} lang={lang} />
       </p>
       {view.mode === 'analyst' && <Chips metrics={overlay.metrics} />}
       {insight && (view.mode === 'analyst' || why) && <Insight line={insight} lang={lang} />}
-      <button className="why" onClick={() => setWhy(!why)} aria-expanded={why}>
+      <button
+        className="why"
+        onClick={() => {
+          setWhy(!why)
+          setOpened(!why)
+        }}
+        aria-expanded={why}
+      >
         {t(lang, why ? 'hideEvidence' : 'why')}
       </button>
       {why && (
