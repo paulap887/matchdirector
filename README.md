@@ -1,14 +1,14 @@
-# MatchDirector
+# Ninetyfold
 
 **An AI broadcast studio for explainable, personalised match intelligence.**
 
-MatchDirector watches a live (synthetic) football match and runs a small studio of AI agents over it. Code computes every statistic; the agents explain *why* each moment matters, check each other's work, and tell the same match differently to a casual fan, an analyst, a supporter of either club, or someone following one player. At full time they write the match report.
+Ninetyfold watches a live (synthetic) football match and runs a small studio of AI agents over it. Code computes every statistic; the agents explain *why* each moment matters, check each other's work, and tell the same match differently to a casual fan, an analyst, a supporter of either club, or someone following one player. At full time they write the match report.
 
 > **Numbers come from code; words come from AI.** Models never calculate a statistic. They only word facts that the stats engine has already computed, every number they write is checked against those facts, and every moment cites the events behind it.
 
 **Live demo:** https://overlayhub.whitemeadow-6a3a991d.swedencentral.azurecontainerapps.io. Matches play on demand: opening the page kicks one off within seconds (one match is about 9 minutes at 10× speed).
 
-*All clubs, players, venues and match data are fictional and generated synthetically. Built for the* Inside the Game *developer hackathon, October 2026.*
+*All clubs, players, venues and match data are fictional and generated synthetically. Built for the* Inside the Game *developer hackathon, October 2026. The code still uses the working name `MatchDirector` for its projects and namespaces.*
 
 | Analyst | Club fan |
 |---|---|
@@ -58,7 +58,7 @@ flowchart LR
 
 ## Challenge stages
 
-| Stage | What MatchDirector does | Where to look |
+| Stage | What Ninetyfold does | Where to look |
 |---|---|---|
 | (a) Ingest live events | Deterministic simulator streaming to Event Hubs; JSON-lines export as a reusable synthetic dataset | [`src/MatchDirector.Simulator`](src/MatchDirector.Simulator) |
 | (b) Interpret into stats and patterns | xG from distance and angle, pass difficulty and progression, ball and shot speed, possession by time, momentum, control vs chaos, player ratings | [`src/MatchDirector.StatsEngine`](src/MatchDirector.StatsEngine) |

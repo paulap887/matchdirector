@@ -49,7 +49,7 @@ public sealed class EvalReport(EvalOptions options)
     private string Markdown()
     {
         var md = new StringBuilder();
-        md.AppendLine("# MatchDirector evaluation");
+        md.AppendLine("# Ninetyfold evaluation");
         md.AppendLine();
         md.AppendLine($"Generated {DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm} UTC by `eval/MatchDirector.Eval`. All matches are synthetic and seeded, so the deterministic results reproduce exactly; model results vary slightly between runs.");
         md.AppendLine();

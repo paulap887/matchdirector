@@ -29,7 +29,7 @@ export default function App() {
     <div className={`studio mode-${prefs.mode}`}>
       <header className="topbar">
         <div className="brand">
-          Match<span>Director</span>
+          Ninety<span>fold</span>
         </div>
         <nav className="mode" aria-label="Viewer mode">
           {MODES.map((m) => (
