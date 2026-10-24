@@ -1,4 +1,4 @@
-# MatchDirector evaluation
+# Ninetyfold evaluation
 
 Generated 2026-10-20 17:30 UTC by `eval/MatchDirector.Eval`. All matches are synthetic and seeded, so the deterministic results reproduce exactly; model results vary slightly between runs.
 

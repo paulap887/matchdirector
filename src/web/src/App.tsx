@@ -29,7 +29,7 @@ export default function App() {
     <div className={`studio mode-${prefs.mode}`}>
       <header className="topbar">
         <div className="brand">
-          Match<span>Director</span>
+          Ninety<span>fold</span>
         </div>
         <nav className="mode" aria-label="Viewer mode">
           {MODES.map((m) => (
@@ -112,11 +112,11 @@ function Controls({ info, prefs, setPrefs }: { info: MatchInfo; prefs: ReturnTyp
 }
 
 /**
- * Matches play on demand, so the studio's models only run while someone is watching. Connecting already asks for
- * a match, so a new viewer sees it start within seconds; afterwards the button asks for another.
+ * Matches play on demand, so the studio's models only run while someone is watching. A new visitor's connection
+ * already asks for a match, so they see it start within seconds; after a match, the button asks for another.
  */
 function KickOff({ hasPlayed }: { hasPlayed: boolean }) {
-  const [requested, setRequested] = useState(true)
+  const [requested, setRequested] = useState(!hasPlayed)
   useEffect(() => {
     if (!requested) return
     const timer = setTimeout(() => setRequested(false), 20000)

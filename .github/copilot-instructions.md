@@ -1,7 +1,9 @@
 # MatchDirector: instructions for GitHub Copilot
 
+Product name: **Ninetyfold** (use it in anything users see). `MatchDirector` remains the code and repository name.
+
 MatchDirector is an AI broadcast studio over synthetic football events: .NET 10 + Aspire, React/Vite,
-Microsoft Foundry and Microsoft Agent Framework. Keep these rules in sync with `CLAUDE.md`.
+Microsoft Foundry and Microsoft Agent Framework.
 
 ## Rules
 - Numbers come from code (`src/MatchDirector.StatsEngine`); LLMs only narrate. Every claim an agent makes must cite event IDs.
