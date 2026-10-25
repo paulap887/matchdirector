@@ -83,9 +83,9 @@ flowchart LR
 | **UX and presentation** | Four genuinely different viewer experiences in six languages, speed alerts and milestones, "Why am I seeing this?" on every overlay and report, shareable views, mobile-friendly layout. |
 | **Category adherence** | All five required stages, plus suggested features: player tagging with speed and distance indicators at thresholds, notable milestones, multi-language commentary, pass difficulty, ball and shot speed, control vs chaos, synthetic dataset creation and match recaps. |
 
-## Best Multi-Agent System
+## Best Multi-Agent Orchestration
 
-Ninetyfold is entered in the **Best Multi-Agent System** category. The studio is built the way a broadcast gallery works: specialists with one job each, a director who decides what goes on air, and checks between every hand-off.
+Ninetyfold is entered in the **Best Multi-Agent Orchestration** category. The studio is built the way a broadcast gallery works: specialists with one job each, a director who decides what goes on air, and checks between every hand-off.
 
 | The category asks for | How Ninetyfold does it |
 |---|---|
